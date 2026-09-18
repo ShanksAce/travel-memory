@@ -1,0 +1,99 @@
+{
+  "run_at": "2026-09-18T19:25:36.302Z",
+  "environment": "local development, real D1 and R2 emulation",
+  "passed": 23,
+  "tests": [
+    {
+      "name": "Anonymous API is rejected",
+      "passed": true
+    },
+    {
+      "name": "Create trip in persistent database",
+      "passed": true
+    },
+    {
+      "name": "Reject impossible dates",
+      "passed": true
+    },
+    {
+      "name": "Reject reversed trip dates",
+      "passed": true
+    },
+    {
+      "name": "Save GPS check-in",
+      "passed": true
+    },
+    {
+      "name": "Reject invalid GPS coordinates",
+      "passed": true
+    },
+    {
+      "name": "Save mood diary",
+      "passed": true
+    },
+    {
+      "name": "Edit diary",
+      "passed": true
+    },
+    {
+      "name": "Save itinerary and budget",
+      "passed": true
+    },
+    {
+      "name": "Reject dates outside trip",
+      "passed": true
+    },
+    {
+      "name": "Add preparation item",
+      "passed": true
+    },
+    {
+      "name": "Toggle preparation item",
+      "passed": true
+    },
+    {
+      "name": "Reject cross-origin writes",
+      "passed": true
+    },
+    {
+      "name": "Reject unknown or unowned trip",
+      "passed": true
+    },
+    {
+      "name": "Upload real image bytes to object storage",
+      "passed": true
+    },
+    {
+      "name": "Read authenticated original image",
+      "passed": true
+    },
+    {
+      "name": "Reject anonymous photo access",
+      "passed": true
+    },
+    {
+      "name": "Reject disguised non-image upload",
+      "passed": true
+    },
+    {
+      "name": "Correct photo classification",
+      "passed": true
+    },
+    {
+      "name": "Reload preserves related records",
+      "passed": true
+    },
+    {
+      "name": "Prevent shrinking dates around existing records",
+      "passed": true
+    },
+    {
+      "name": "Cascade delete removes all related records",
+      "passed": true
+    },
+    {
+      "name": "Deleted photo is no longer accessible",
+      "passed": true
+    }
+  ]
+}

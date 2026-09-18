@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1789753625722,
+      "tag": "0000_clean_thaddeus_ross",
+      "breakpoints": true
+    }
+  ]
+}

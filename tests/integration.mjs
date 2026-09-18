@@ -1,0 +1,40 @@
+import assert from 'node:assert/strict';
+import {writeFile,mkdir} from 'node:fs/promises';
+const base=process.env.TEST_BASE_URL||'http://127.0.0.1:5173';
+const results=[];const check=(name,condition)=>{assert.ok(condition,name);results.push({name,passed:true});console.log('PASS',name)};
+const anonymous=await fetch(base+'/api/data');check('Anonymous API is rejected',anonymous.status===401);
+const sign=await fetch(base+'/signin-with-chatgpt?return_to=/',{redirect:'manual'});const cookie=sign.headers.getSetCookie().map(x=>x.split(';')[0]).join('; ');
+assert.ok(cookie,'Local development sign-in cookie is required');
+async function api(payload){const r=await fetch(base+'/api/actions',{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json',Origin:base},body:JSON.stringify(payload)});return {status:r.status,data:await r.json()}}
+const get=async()=>{const r=await fetch(base+'/api/data',{headers:{Cookie:cookie}});assert.equal(r.status,200);return r.json()};
+let tripId;
+try{
+let r=await api({action:'save',entity:'trip',data:{title:'Integration test',country:'日本',city:'東京',start_date:'2026-01-01',end_date:'2026-01-03'}});
+check('Create trip in persistent database',r.status===200&&r.data.id);tripId=r.data.id;
+r=await api({action:'save',entity:'trip',data:{title:'Invalid',country:'日本',city:'東京',start_date:'2026-02-30',end_date:'2026-03-01'}});check('Reject impossible dates',r.status===400);
+r=await api({action:'save',entity:'trip',data:{title:'Invalid',country:'日本',city:'東京',start_date:'2026-02-03',end_date:'2026-02-01'}});check('Reject reversed trip dates',r.status===400);
+r=await api({action:'save',entity:'place',trip_id:tripId,data:{name:'淺草寺',country:'日本',city:'東京',lat:35.7148,lng:139.7967,date:'2026-01-02'}});check('Save GPS check-in',r.status===200);
+r=await api({action:'save',entity:'place',trip_id:tripId,data:{name:'bad',country:'日本',city:'東京',lat:350,lng:139,date:'2026-01-02'}});check('Reject invalid GPS coordinates',r.status===400);
+r=await api({action:'save',entity:'diary',trip_id:tripId,data:{date:'2026-01-02',mood:'開心',title:'Test diary',body:'儲存後重新載入仍然看得見。'}});check('Save mood diary',r.status===200);const diaryId=r.data.id;
+r=await api({action:'save',entity:'diary',id:diaryId,trip_id:tripId,data:{date:'2026-01-02',mood:'感動',title:'Updated diary',body:'更新成功'}});check('Edit diary',r.status===200);
+r=await api({action:'save',entity:'itinerary',trip_id:tripId,data:{date:'2026-01-01',time:'12:30',category:'交通',title:'Airport train',note:'test',cost:300}});check('Save itinerary and budget',r.status===200);
+r=await api({action:'save',entity:'itinerary',trip_id:tripId,data:{date:'2026-01-04',time:'12:30',category:'交通',title:'out of range',cost:0}});check('Reject dates outside trip',r.status===400);
+r=await api({action:'save',entity:'task',trip_id:tripId,data:{title:'Flight',done:0}});check('Add preparation item',r.status===200);const taskId=r.data.id;
+r=await api({action:'save',entity:'task',trip_id:tripId,id:taskId,data:{title:'Flight',done:1}});check('Toggle preparation item',r.status===200);
+const cross=await fetch(base+'/api/actions',{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json',Origin:'https://untrusted.example'},body:JSON.stringify({action:'seed'})});check('Reject cross-origin writes',cross.status===403);
+r=await api({action:'delete',entity:'trip',id:'not-owned-or-nonexistent'});check('Reject unknown or unowned trip',r.status===404);
+const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aXuoAAAAASUVORK5CYII=','base64');
+let form=new FormData();form.set('trip_id',tripId);form.set('file',new Blob([png],{type:'image/png'}),'test.png');form.set('date','2026-01-02');
+let upload=await fetch(base+'/api/photos',{method:'POST',headers:{Cookie:cookie,Origin:base},body:form});const photo=await upload.json();check('Upload real image bytes to object storage',upload.status===200);
+let image=await fetch(base+'/api/photos/'+photo.id,{headers:{Cookie:cookie}});check('Read authenticated original image',image.status===200&&Buffer.compare(Buffer.from(await image.arrayBuffer()),png)===0);
+image=await fetch(base+'/api/photos/'+photo.id);check('Reject anonymous photo access',image.status===401);
+form=new FormData();form.set('trip_id',tripId);form.set('file',new Blob(['<script>bad</script>'],{type:'image/jpeg'}),'fake.jpg');upload=await fetch(base+'/api/photos',{method:'POST',headers:{Cookie:cookie,Origin:base},body:form});check('Reject disguised non-image upload',upload.status===400);
+r=await api({action:'save',entity:'photo',id:photo.id,trip_id:tripId,data:{date:'2026-01-03',city:'京都',caption:'Manually corrected'}});check('Correct photo classification',r.status===200);
+const readback=await get();check('Reload preserves related records',readback.trips.some(t=>t.id===tripId)&&readback.diaries.some(d=>d.id===diaryId&&d.title==='Updated diary')&&readback.tasks.some(t=>t.id===taskId&&t.done===1)&&readback.photos.some(p=>p.id===photo.id&&p.city==='京都'));
+r=await api({action:'save',entity:'trip',id:tripId,data:{title:'Test',country:'日本',city:'東京',start_date:'2026-01-03',end_date:'2026-01-03'}});check('Prevent shrinking dates around existing records',r.status===400);
+await api({action:'delete',entity:'trip',id:tripId});const after=await get();check('Cascade delete removes all related records',!after.trips.some(t=>t.id===tripId)&&['places','diaries','itinerary','tasks','photos'].every(k=>!after[k].some(x=>x.trip_id===tripId)));
+image=await fetch(base+'/api/photos/'+photo.id,{headers:{Cookie:cookie}});check('Deleted photo is no longer accessible',image.status===404);tripId=null;
+await mkdir('docs',{recursive:true});await writeFile('docs/test-results.json',JSON.stringify({run_at:new Date().toISOString(),environment:'local development, real D1 and R2 emulation',passed:results.length,tests:results},null,2));
+console.log(results.length+' integration checks passed');
+}finally{if(tripId)await api({action:'delete',entity:'trip',id:tripId})}
+
