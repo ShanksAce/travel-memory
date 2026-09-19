@@ -35,6 +35,7 @@ node "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js" run dev -- --host
 JSON 匯出包含文字與照片索引，不包含照片二進位檔。請另外下載原始照片；目前沒有 JSON 匯入／完整備份還原功能。
 
 ## 文件
+- [更新紀錄](CHANGELOG.md)：每個正式版本的功能、修正與驗證結果。
 - [專題報告](docs/專題報告.md)：動機、需求、架構、資料庫、演算法、測試、限制。
 - [展示流程](docs/展示流程.md)：8 分鐘展示及簡報內容。
 - [口試說明](docs/口試說明.md)：原理與常見問答。
@@ -53,6 +54,9 @@ npm run test:exif
 
 ## 技術
 React／TypeScript、Vinext App Router、Leaflet／OpenStreetMap、Cloudflare Workers／D1／R2、Drizzle migrations、Zod、exifr。
+
+## 版本管理
+目前正式版本為 `v0.1.0`。每次正式更新會保留原始碼版本、補寫 `CHANGELOG.md`、建立版本標籤並產生獨立 ZIP 備份；需要回復時可指定任一版本。程式版本與正式網站中的旅行資料分開保存，回復程式不會自動回復或刪除旅行紀錄與照片。
 
 app/travel-app.tsx 是主要互動介面，app/world-map.tsx 是地圖；app/api 是後端；lib/model.ts 處理資料驗證及日期／統計；lib/cities.ts 是離線城市資料；db/schema.ts 定義關聯資料表。
 
