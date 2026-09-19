@@ -35,6 +35,7 @@ node "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js" run dev -- --host
 JSON 匯出包含文字與照片索引，不包含照片二進位檔。請另外下載原始照片；目前沒有 JSON 匯入／完整備份還原功能。
 
 ## 文件
+- [實作狀態](IMPLEMENTATION_STATUS.md)：依目前程式碼盤點技術棧、完成度、資料模型、權限、已知問題、技術債與接手順序。
 - [更新紀錄](CHANGELOG.md)：每個正式版本的功能、修正與驗證結果。
 - [專題報告](docs/專題報告.md)：動機、需求、架構、資料庫、演算法、測試、限制。
 - [展示流程](docs/展示流程.md)：8 分鐘展示及簡報內容。
