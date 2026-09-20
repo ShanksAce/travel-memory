@@ -3,8 +3,14 @@ import {writeFile,mkdir} from 'node:fs/promises';
 const base=process.env.TEST_BASE_URL||'http://127.0.0.1:5173';
 const results=[];const check=(name,condition)=>{assert.ok(condition,name);results.push({name,passed:true});console.log('PASS',name)};
 const anonymous=await fetch(base+'/api/data');check('Anonymous API is rejected',anonymous.status===401);
-const sign=await fetch(base+'/signin-with-chatgpt?return_to=/',{redirect:'manual'});const cookie=sign.headers.getSetCookie().map(x=>x.split(';')[0]).join('; ');
-assert.ok(cookie,'Local development sign-in cookie is required');
+const email='integration@travel-memory.test',password='integration-test-password';
+let register=await fetch(base+'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json',Origin:base},body:JSON.stringify({name:'Integration Tester',email,password})});
+check('Register endpoint accepts a new or existing test account',register.status===201||register.status===409);
+let badLogin=await fetch(base+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json',Origin:base},body:JSON.stringify({email,password:'definitely-wrong-password'})});
+check('Reject incorrect password',badLogin.status===401);
+const login=await fetch(base+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json',Origin:base},body:JSON.stringify({email,password})});
+const cookie=login.headers.getSetCookie().map(x=>x.split(';')[0]).join('; ');
+check('Login creates authenticated session cookie',login.status===200&&Boolean(cookie));
 async function api(payload){const r=await fetch(base+'/api/actions',{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json',Origin:base},body:JSON.stringify(payload)});return {status:r.status,data:await r.json()}}
 const get=async()=>{const r=await fetch(base+'/api/data',{headers:{Cookie:cookie}});assert.equal(r.status,200);return r.json()};
 let tripId;
@@ -28,13 +34,13 @@ let form=new FormData();form.set('trip_id',tripId);form.set('file',new Blob([png
 let upload=await fetch(base+'/api/photos',{method:'POST',headers:{Cookie:cookie,Origin:base},body:form});const photo=await upload.json();check('Upload real image bytes to object storage',upload.status===200);
 let image=await fetch(base+'/api/photos/'+photo.id,{headers:{Cookie:cookie}});check('Read authenticated original image',image.status===200&&Buffer.compare(Buffer.from(await image.arrayBuffer()),png)===0);
 image=await fetch(base+'/api/photos/'+photo.id);check('Reject anonymous photo access',image.status===401);
-form=new FormData();form.set('trip_id',tripId);form.set('file',new Blob(['<script>bad</script>'],{type:'image/jpeg'}),'fake.jpg');upload=await fetch(base+'/api/photos',{method:'POST',headers:{Cookie:cookie,Origin:base},body:form});check('Reject disguised non-image upload',upload.status===400);
+form=new FormData();form.set('trip_id',tripId);form.set('file',new Blob(['not-an-image'],{type:'image/jpeg'}),'fake.jpg');upload=await fetch(base+'/api/photos',{method:'POST',headers:{Cookie:cookie,Origin:base},body:form});check('Reject disguised non-image upload',upload.status===400);
 r=await api({action:'save',entity:'photo',id:photo.id,trip_id:tripId,data:{date:'2026-01-03',city:'京都',caption:'Manually corrected'}});check('Correct photo classification',r.status===200);
 const readback=await get();check('Reload preserves related records',readback.trips.some(t=>t.id===tripId)&&readback.diaries.some(d=>d.id===diaryId&&d.title==='Updated diary')&&readback.tasks.some(t=>t.id===taskId&&t.done===1)&&readback.photos.some(p=>p.id===photo.id&&p.city==='京都'));
 r=await api({action:'save',entity:'trip',id:tripId,data:{title:'Test',country:'日本',city:'東京',start_date:'2026-01-03',end_date:'2026-01-03'}});check('Prevent shrinking dates around existing records',r.status===400);
 await api({action:'delete',entity:'trip',id:tripId});const after=await get();check('Cascade delete removes all related records',!after.trips.some(t=>t.id===tripId)&&['places','diaries','itinerary','tasks','photos'].every(k=>!after[k].some(x=>x.trip_id===tripId)));
 image=await fetch(base+'/api/photos/'+photo.id,{headers:{Cookie:cookie}});check('Deleted photo is no longer accessible',image.status===404);tripId=null;
+const logout=await fetch(base+'/api/auth/logout',{method:'POST',headers:{Cookie:cookie,Origin:base}});check('Logout clears session',logout.status===200&&logout.headers.get('set-cookie')?.includes('Max-Age=0'));
 await mkdir('docs',{recursive:true});await writeFile('docs/test-results.json',JSON.stringify({run_at:new Date().toISOString(),environment:'local development, real D1 and R2 emulation',passed:results.length,tests:results},null,2));
 console.log(results.length+' integration checks passed');
 }finally{if(tripId)await api({action:'delete',entity:'trip',id:tripId})}
-
