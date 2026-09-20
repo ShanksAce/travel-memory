@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { getChatGPTUser } from '../app/chatgpt-auth';
+import { getCurrentUser } from './auth';
 export class ApiError extends Error {
     constructor(public status: number, message: string) { super(message); }
 }
@@ -7,7 +7,7 @@ export function db() { if (!env.DB)
     throw new ApiError(503, '資料庫暫時無法使用，請稍後重試。'); return env.DB; }
 export function bucket() { if (!env.BUCKET)
     throw new ApiError(503, '相片儲存空間暫時無法使用。'); return env.BUCKET; }
-export async function identity() { const user = await getChatGPTUser(); if (!user)
+export async function identity() { const user = await getCurrentUser(); if (!user)
     throw new ApiError(401, '請先登入，再儲存旅行。'); return user; }
 export function checkOrigin(req: Request) { const o = req.headers.get('origin'); if (o && o !== new URL(req.url).origin)
     throw new ApiError(403, '不允許跨網站操作。'); }

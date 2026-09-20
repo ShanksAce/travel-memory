@@ -1,0 +1,114 @@
+name: Deploy to Cloudflare
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+  D1_DATABASE_NAME: travel-memory-db
+  R2_BUCKET_NAME: travel-memory-photos
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Check Cloudflare deployment secrets
+        id: secrets
+        shell: bash
+        run: |
+          if [[ -n "$CLOUDFLARE_API_TOKEN" && -n "$CLOUDFLARE_ACCOUNT_ID" ]]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "Cloudflare deploy skipped: add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID as repository secrets."
+          fi
+      - name: Verify before deployment
+        if: steps.secrets.outputs.ready == 'true'
+        run: |
+          npm run typecheck
+          npm test
+          npm run build
+      - name: Ensure D1 database and R2 bucket exist
+        if: steps.secrets.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          D1_ID=$(npx wrangler d1 list --json | node -e '
+            let s=""; process.stdin.on("data", c => s += c).on("end", () => {
+              const rows = JSON.parse(s);
+              const row = rows.find(x => x.name === process.env.D1_DATABASE_NAME);
+              if (row) process.stdout.write(row.uuid || row.id || "");
+            });
+          ')
+
+          if [[ -z "$D1_ID" ]]; then
+            npx wrangler d1 create "$D1_DATABASE_NAME"
+            D1_ID=$(npx wrangler d1 list --json | node -e '
+              let s=""; process.stdin.on("data", c => s += c).on("end", () => {
+                const rows = JSON.parse(s);
+                const row = rows.find(x => x.name === process.env.D1_DATABASE_NAME);
+                if (row) process.stdout.write(row.uuid || row.id || "");
+              });
+            ')
+          fi
+
+          if [[ -z "$D1_ID" ]]; then
+            echo "Could not resolve D1 database id for $D1_DATABASE_NAME" >&2
+            exit 1
+          fi
+
+          R2_LIST=$(npx wrangler r2 bucket list)
+          if ! printf '%s\n' "$R2_LIST" | grep -Fq "$R2_BUCKET_NAME"; then
+            npx wrangler r2 bucket create "$R2_BUCKET_NAME"
+          else
+            echo "Using existing R2 bucket: $R2_BUCKET_NAME"
+          fi
+
+          echo "D1_DATABASE_ID=$D1_ID" >> "$GITHUB_ENV"
+      - name: Bind existing Cloudflare resources
+        if: steps.secrets.outputs.ready == 'true'
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const path = 'dist/server/wrangler.json';
+          const config = JSON.parse(fs.readFileSync(path, 'utf8'));
+
+          config.d1_databases = (config.d1_databases || []).map(binding =>
+            binding.binding === 'DB'
+              ? { ...binding, database_name: process.env.D1_DATABASE_NAME, database_id: process.env.D1_DATABASE_ID }
+              : binding
+          );
+
+          config.r2_buckets = (config.r2_buckets || []).map(binding =>
+            binding.binding === 'BUCKET'
+              ? { ...binding, bucket_name: process.env.R2_BUCKET_NAME }
+              : binding
+          );
+
+          fs.writeFileSync(path, JSON.stringify(config, null, 2) + '\n');
+          NODE
+      - name: Deploy Worker
+        if: steps.secrets.outputs.ready == 'true'
+        run: npx wrangler deploy --config dist/server/wrangler.json
+      - name: Apply D1 migrations
+        if: steps.secrets.outputs.ready == 'true'
+        run: npx wrangler d1 migrations apply "$D1_DATABASE_NAME" --remote --config wrangler.jsonc
+      - name: Deployment summary
+        if: steps.secrets.outputs.ready == 'true'
+        run: echo "Travel Memory deployment completed. Open the Cloudflare Workers deployment URL shown above."

@@ -8,18 +8,40 @@
 
 ## [Unreleased]
 
+### 新增
+
+- 新增 Travel Memory 獨立帳號註冊／登入，不再依賴 ChatGPT Sites authentication headers。
+- 新增 D1 `users`、`sessions`、`auth_attempts` 資料表與 migration。
+- 新增 PBKDF2-SHA-256 密碼雜湊、每帳號獨立 salt、HttpOnly Session Cookie 與登入失敗節流。
+- 新增獨立登入／註冊手機版頁面。
+- 新增 GitHub Actions CI，檢查 typecheck、lint、domain tests、build、D1/R2 integration 與 EXIF integration。
+- 新增 GitHub Actions Cloudflare deployment workflow，預計由 `main` 自動部署 Workers、D1 與 R2。
+- 新增 `SECURITY.md` 與 `docs/DEPLOYMENT.md`。
+
+### 變更
+
+- `lib/server.ts` 身分來源改為 Travel Memory 自己的 Session，既有 Trip ownership 驗證維持不變。
+- Vite / Vinext 建置移除 ChatGPT Sites hosting plugin 依賴，改用獨立 Cloudflare Workers 設定。
+- 新增 `wrangler.jsonc`，正式環境 binding 使用 `DB` 與 `BUCKET`。
+- Integration 與 EXIF 測試改以獨立測試帳號登入。
+- 舊 `/signin-with-chatgpt` 與 `/signout-with-chatgpt` URL 暫時保留相容 route，導向新的獨立登入／登出流程。
+- Cloudflare deployment 改為先查找既有 D1 / R2 資源，再建立缺少的資源並綁定，重跑部署時不再重複建立同名 D1。
+
 ### 修正
 
 - 首頁旅行統計數字不再補前導零；例如 0 顯示為 `0`，不再顯示為 `00`。
+- 修正 Web Crypto PBKDF2 salt 的 TypeScript `BufferSource` 型別問題。
+- 修正 Cloudflare 首次部署中途建立 D1 後，重新執行 workflow 會因同名資料庫已存在而失敗的問題。
 
 ### 文件
 
-- 新增 `IMPLEMENTATION_STATUS.md`，依實際程式碼整理技術棧、已完成／部分完成／未完成功能、示範資料、真實資料服務、資料模型、權限、錯誤處理、已知問題、技術債與建議開發順序。
+- 更新 `README.md`，說明獨立帳號、Cloudflare 部署、CI 與舊 ChatGPT Sites 資料的遷移限制。
+- 更新 `IMPLEMENTATION_STATUS.md` 為獨立網站架構現況。
 
 ### 維護
 
 - 補強 `.gitignore`，排除額外的私鑰、憑證、credentials、secrets、log 與 build cache 類型。
-- 重新通過型別檢查、正式建置、8 項領域測試、23 項 API 整合測試及 2 項 EXIF 測試，並更新測試時間。
+- Cloudflare API Token 與 Account ID 僅由 GitHub Actions Secrets 提供，不寫入 repository。
 
 ## [0.1.0] - 2026-09-20
 
@@ -32,7 +54,6 @@
 - 心情日記、每日行程、交通住宿備忘與花費紀錄。
 - 出發倒數、準備清單、完成率與旅行統計。
 - 搜尋、JSON 文字資料匯出與示範旅行。
-- 專題報告、展示流程、口試說明與測試紀錄。
 
 ### 驗證
 
