@@ -12,6 +12,8 @@ permissions:
 env:
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+  D1_DATABASE_NAME: travel-memory-db
+  R2_BUCKET_NAME: travel-memory-photos
 
 jobs:
   deploy:
@@ -40,12 +42,76 @@ jobs:
           npm run typecheck
           npm test
           npm run build
-      - name: Deploy Worker and provision D1/R2 bindings
+      - name: Ensure D1 database and R2 bucket exist
+        if: steps.secrets.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          D1_ID=$(npx wrangler d1 list --json | node -e '
+            let s=""; process.stdin.on("data", c => s += c).on("end", () => {
+              const rows = JSON.parse(s);
+              const row = rows.find(x => x.name === process.env.D1_DATABASE_NAME);
+              if (row) process.stdout.write(row.uuid || row.id || "");
+            });
+          ')
+
+          if [[ -z "$D1_ID" ]]; then
+            npx wrangler d1 create "$D1_DATABASE_NAME"
+            D1_ID=$(npx wrangler d1 list --json | node -e '
+              let s=""; process.stdin.on("data", c => s += c).on("end", () => {
+                const rows = JSON.parse(s);
+                const row = rows.find(x => x.name === process.env.D1_DATABASE_NAME);
+                if (row) process.stdout.write(row.uuid || row.id || "");
+              });
+            ')
+          fi
+
+          if [[ -z "$D1_ID" ]]; then
+            echo "Could not resolve D1 database id for $D1_DATABASE_NAME" >&2
+            exit 1
+          fi
+
+          if ! npx wrangler r2 bucket list --json | node -e '
+            let s=""; process.stdin.on("data", c => s += c).on("end", () => {
+              const rows = JSON.parse(s);
+              const list = Array.isArray(rows) ? rows : (rows.buckets || []);
+              process.exit(list.some(x => (x.name || x.bucket_name) === process.env.R2_BUCKET_NAME) ? 0 : 1);
+            });
+          '; then
+            npx wrangler r2 bucket create "$R2_BUCKET_NAME"
+          fi
+
+          echo "D1_DATABASE_ID=$D1_ID" >> "$GITHUB_ENV"
+      - name: Bind existing Cloudflare resources
+        if: steps.secrets.outputs.ready == 'true'
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const path = 'dist/server/wrangler.json';
+          const config = JSON.parse(fs.readFileSync(path, 'utf8'));
+
+          config.d1_databases = (config.d1_databases || []).map(binding =>
+            binding.binding === 'DB'
+              ? { ...binding, database_name: process.env.D1_DATABASE_NAME, database_id: process.env.D1_DATABASE_ID }
+              : binding
+          );
+
+          config.r2_buckets = (config.r2_buckets || []).map(binding =>
+            binding.binding === 'BUCKET'
+              ? { ...binding, bucket_name: process.env.R2_BUCKET_NAME }
+              : binding
+          );
+
+          fs.writeFileSync(path, JSON.stringify(config, null, 2) + '\n');
+          NODE
+      - name: Deploy Worker
         if: steps.secrets.outputs.ready == 'true'
         run: npx wrangler deploy --config dist/server/wrangler.json
       - name: Apply D1 migrations
         if: steps.secrets.outputs.ready == 'true'
-        run: npx wrangler d1 migrations apply DB --remote --config wrangler.jsonc
+        run: npx wrangler d1 migrations apply "$D1_DATABASE_NAME" --remote --config wrangler.jsonc
       - name: Deployment summary
         if: steps.secrets.outputs.ready == 'true'
         run: echo "Travel Memory deployment completed. Open the Cloudflare Workers deployment URL shown above."
