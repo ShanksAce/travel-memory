@@ -1,0 +1,43 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px 20px;
+  background: linear-gradient(145deg, #f7f3eb 0%, #eef4ef 100%);
+}
+.card {
+  width: min(100%, 460px);
+  background: rgba(255,255,255,.94);
+  border: 1px solid rgba(38,60,48,.12);
+  border-radius: 24px;
+  padding: 30px;
+  box-shadow: 0 24px 70px rgba(44,62,52,.12);
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #263c30;
+  text-decoration: none;
+  font-weight: 700;
+}
+.brand span { display: grid; line-height: 1.05; }
+.brand small { font-weight: 500; opacity: .66; margin-top: 4px; }
+.copy { margin: 34px 0 22px; }
+.eyebrow { font-size: 12px; letter-spacing: .15em; color: #75877c; font-weight: 700; }
+.copy h1 { margin: 8px 0 8px; font-size: clamp(28px, 6vw, 38px); color: #23352b; }
+.copy p { margin: 0; color: #68766e; line-height: 1.7; }
+.tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: #edf1ed; padding: 5px; border-radius: 13px; margin-bottom: 22px; }
+.tabs button { border: 0; background: transparent; padding: 10px; border-radius: 9px; cursor: pointer; color: #65736b; font-weight: 650; }
+.tabs .active { background: white; color: #263c30; box-shadow: 0 2px 12px rgba(37,55,45,.08); }
+.form { display: grid; gap: 15px; }
+.form label { display: grid; gap: 7px; font-size: 14px; color: #425249; font-weight: 650; }
+.form input { width: 100%; border: 1px solid #d5ddd7; background: white; border-radius: 11px; padding: 12px 13px; font: inherit; outline: none; }
+.form input:focus { border-color: #718d7b; box-shadow: 0 0 0 3px rgba(113,141,123,.12); }
+.submit { width: 100%; justify-content: center; min-height: 46px; margin-top: 4px; }
+.error { padding: 11px 12px; border-radius: 10px; background: #fff0ee; color: #a33d35; font-size: 14px; line-height: 1.5; }
+.note { color: #879189; font-size: 12px; line-height: 1.6; margin: 18px 0 0; }
+@media (max-width: 520px) {
+  .page { padding: 18px 12px; align-items: start; }
+  .card { border-radius: 20px; padding: 24px 20px; margin-top: 4vh; }
+}
