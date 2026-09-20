@@ -18,7 +18,7 @@ export async function POST(request: Request) {
         });
     } catch (error) {
         const message = error instanceof Error ? error.message : '註冊失敗，請稍後再試。';
-        const status = message.includes('已註冊') ? 409 : 400;
+        const status = message.includes('已註冊') || message.includes('擁有者設定') ? 409 : 400;
         return Response.json({ error: message }, { status });
     }
 }

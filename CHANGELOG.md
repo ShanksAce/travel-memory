@@ -31,6 +31,8 @@
 
 - 首頁旅行統計數字不再補前導零；例如 0 顯示為 `0`，不再顯示為 `00`。
 - 修正 Web Crypto PBKDF2 salt 的 TypeScript `BufferSource` 型別問題。
+- 將 PBKDF2 迭代次數調整為 Cloudflare Workers Web Crypto 支援的 100,000 次。
+- 第一個擁有者帳號建立後自動關閉註冊，避免公開網址被其他人建立帳號。
 - 修正 Cloudflare 首次部署中途建立 D1 後，重新執行 workflow 會因同名資料庫已存在而失敗的問題。
 
 ### 文件

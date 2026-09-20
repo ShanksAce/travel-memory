@@ -24,7 +24,7 @@ type AttemptRow = {
 
 const SESSION_COOKIE = 'travel_memory_session';
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
-const PASSWORD_ITERATIONS = 310_000;
+const PASSWORD_ITERATIONS = 100_000;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_LIMIT = 5;
 
@@ -107,6 +107,9 @@ export async function registerUser(name: string, email: string, password: string
     if (displayName.length < 1 || displayName.length > 80) throw new Error('名稱需為 1 到 80 個字元。');
     if (normalizedEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) throw new Error('請輸入有效的電子郵件。');
     if (password.length < 10 || password.length > 128) throw new Error('密碼至少 10 個字元，最多 128 個字元。');
+
+    const ownerExists = await database().prepare('SELECT id FROM users LIMIT 1').first();
+    if (ownerExists) throw new Error('此網站已完成擁有者設定，請直接登入。');
 
     const existing = await database().prepare('SELECT id FROM users WHERE email=? LIMIT 1').bind(normalizedEmail).first();
     if (existing) throw new Error('這個電子郵件已註冊，請直接登入。');
