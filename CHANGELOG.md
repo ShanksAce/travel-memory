@@ -34,6 +34,7 @@
 - 將 PBKDF2 迭代次數調整為 Cloudflare Workers Web Crypto 支援的 100,000 次。
 - 第一個擁有者帳號建立後自動關閉註冊，避免公開網址被其他人建立帳號。
 - 修正 Cloudflare 首次部署中途建立 D1 後，重新執行 workflow 會因同名資料庫已存在而失敗的問題。
+- 修正自動部署在 Worker 上傳後找不到 D1 binding 與 migration 目錄而失敗的問題。
 
 ### 文件
 

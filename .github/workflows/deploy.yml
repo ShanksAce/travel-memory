@@ -91,7 +91,12 @@ jobs:
 
           config.d1_databases = (config.d1_databases || []).map(binding =>
             binding.binding === 'DB'
-              ? { ...binding, database_name: process.env.D1_DATABASE_NAME, database_id: process.env.D1_DATABASE_ID }
+              ? {
+                  ...binding,
+                  database_name: process.env.D1_DATABASE_NAME,
+                  database_id: process.env.D1_DATABASE_ID,
+                  migrations_dir: '../../drizzle',
+                }
               : binding
           );
 
@@ -108,7 +113,7 @@ jobs:
         run: npx wrangler deploy --config dist/server/wrangler.json
       - name: Apply D1 migrations
         if: steps.secrets.outputs.ready == 'true'
-        run: npx wrangler d1 migrations apply "$D1_DATABASE_NAME" --remote --config wrangler.jsonc
+        run: npx wrangler d1 migrations apply DB --remote --config dist/server/wrangler.json
       - name: Deployment summary
         if: steps.secrets.outputs.ready == 'true'
         run: echo "Travel Memory deployment completed. Open the Cloudflare Workers deployment URL shown above."
