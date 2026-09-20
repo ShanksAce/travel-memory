@@ -72,14 +72,11 @@ jobs:
             exit 1
           fi
 
-          if ! npx wrangler r2 bucket list --json | node -e '
-            let s=""; process.stdin.on("data", c => s += c).on("end", () => {
-              const rows = JSON.parse(s);
-              const list = Array.isArray(rows) ? rows : (rows.buckets || []);
-              process.exit(list.some(x => (x.name || x.bucket_name) === process.env.R2_BUCKET_NAME) ? 0 : 1);
-            });
-          '; then
+          R2_LIST=$(npx wrangler r2 bucket list)
+          if ! printf '%s\n' "$R2_LIST" | grep -Fq "$R2_BUCKET_NAME"; then
             npx wrangler r2 bucket create "$R2_BUCKET_NAME"
+          else
+            echo "Using existing R2 bucket: $R2_BUCKET_NAME"
           fi
 
           echo "D1_DATABASE_ID=$D1_ID" >> "$GITHUB_ENV"
