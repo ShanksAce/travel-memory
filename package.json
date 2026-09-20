@@ -16,7 +16,9 @@
     "test:integration": "node tests/integration.mjs",
     "test:exif": "node tests/exif-integration.mjs",
     "typecheck": "tsc --noEmit",
-    "db:local": "node scripts/db-local.mjs"
+    "db:local": "node scripts/db-local.mjs",
+    "deploy:cloudflare": "npm run build && wrangler deploy --config wrangler.production.jsonc",
+    "db:migrate:cloudflare": "wrangler d1 execute travel-memory-db --remote --file drizzle/0000_clean_thaddeus_ross.sql"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
