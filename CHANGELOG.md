@@ -25,11 +25,13 @@
 - 新增 `wrangler.jsonc`，正式環境 binding 使用 `DB` 與 `BUCKET`。
 - Integration 與 EXIF 測試改以獨立測試帳號登入。
 - 舊 `/signin-with-chatgpt` 與 `/signout-with-chatgpt` URL 暫時保留相容 route，導向新的獨立登入／登出流程。
+- Cloudflare deployment 改為先查找既有 D1 / R2 資源，再建立缺少的資源並綁定，重跑部署時不再重複建立同名 D1。
 
 ### 修正
 
 - 首頁旅行統計數字不再補前導零；例如 0 顯示為 `0`，不再顯示為 `00`。
 - 修正 Web Crypto PBKDF2 salt 的 TypeScript `BufferSource` 型別問題。
+- 修正 Cloudflare 首次部署中途建立 D1 後，重新執行 workflow 會因同名資料庫已存在而失敗的問題。
 
 ### 文件
 
