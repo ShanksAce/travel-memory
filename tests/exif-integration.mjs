@@ -18,11 +18,12 @@ assert.ok(Math.abs(parsed.latitude-35.675)<.001);assert.ok(Math.abs(parsed.longi
 await mkdir('tests/fixtures',{recursive:true});await writeFile('tests/fixtures/tokyo-exif.jpg',jpeg);
 console.log('PASS JPEG EXIF fixture contains readable date and Tokyo GPS');
 const base='http://127.0.0.1:5173';
-const sign=await fetch(base+'/signin-with-chatgpt?return_to=/',{redirect:'manual'});const cookie=sign.headers.getSetCookie().map(x=>x.split(';')[0]).join('; ');
+const email='integration@travel-memory.test',password='integration-test-password';
+const login=await fetch(base+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json',Origin:base},body:JSON.stringify({email,password})});
+assert.equal(login.status,200);
+const cookie=login.headers.getSetCookie().map(x=>x.split(';')[0]).join('; ');assert.ok(cookie);
 const headers={Cookie:cookie,'Content-Type':'application/json',Origin:base};
 let r=await fetch(base+'/api/actions',{method:'POST',headers,body:JSON.stringify({action:'save',entity:'trip',data:{title:'EXIF test',country:'日本',city:'大阪',start_date:'2026-01-01',end_date:'2026-01-03'}})});
 const trip=await r.json();assert.ok(trip.id);
 try{const form=new FormData();form.set('trip_id',trip.id);form.set('file',new Blob([jpeg],{type:'image/jpeg'}),'tokyo-exif.jpg');r=await fetch(base+'/api/photos',{method:'POST',headers:{Cookie:cookie,Origin:base},body:form});const p=await r.json();assert.equal(r.status,200);assert.equal(p.city,'東京');assert.equal(p.date,'2026-01-02');assert.match(p.source,/GPS/);console.log('PASS API classifies photo by actual EXIF date and GPS, overriding trip default city');}
 finally{await fetch(base+'/api/actions',{method:'POST',headers,body:JSON.stringify({action:'delete',entity:'trip',id:trip.id})})}
-
-
