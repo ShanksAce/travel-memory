@@ -17,7 +17,7 @@ const parsed=await parse(jpeg,{pick:['DateTimeOriginal','CreateDate','GPSLatitud
 assert.ok(Math.abs(parsed.latitude-35.675)<.001);assert.ok(Math.abs(parsed.longitude-139.6916667)<.001);assert.equal(parsed.DateTimeOriginal.getFullYear(),2026);
 await mkdir('tests/fixtures',{recursive:true});await writeFile('tests/fixtures/tokyo-exif.jpg',jpeg);
 console.log('PASS JPEG EXIF fixture contains readable date and Tokyo GPS');
-const base='http://127.0.0.1:5173';
+const base=process.env.TEST_BASE_URL||'http://127.0.0.1:5173';
 const email='integration@travel-memory.test',password='integration-test-password';
 const login=await fetch(base+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json',Origin:base},body:JSON.stringify({email,password})});
 assert.equal(login.status,200);

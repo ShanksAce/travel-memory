@@ -152,3 +152,12 @@ GitHub 需要一次性設定：
 5. 驗證手機上的註冊、登入、旅行 CRUD、照片上傳與登出。
 6. 記錄固定 HTTPS 網址。
 7. 再評估舊資料匯入工具。
+
+## 2026-10-03 接手補充
+
+- 介面品牌：行旅錄；GitHub repository 與 Cloudflare Worker 名稱仍為 travel-memory。
+- 新增 /settings、POST /api/account、GET/POST/DELETE /api/account/avatar。
+- 名稱直接更新 users.display_name；密碼沿用 PBKDF2，需原密碼並撤銷所有 sessions。
+- 頭貼使用私人 R2 的 avatars/<userId>，上限 2 MB，僅登入本人可讀寫；未新增資料表。
+- 新增旅行時間軸（lib/timeline.ts、app/travel-timeline.tsx）及照片缺少資訊篩選。
+- 新增 tests/timeline.test.ts 與 tests/account-integration.mjs（限本機測試帳號）。

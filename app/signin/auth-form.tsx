@@ -34,10 +34,10 @@ export default function AuthForm({ returnTo }: { returnTo: string }) {
 
     return <main className={styles.page}>
         <section className={styles.card}>
-            <a className={styles.brand} href="/"><Compass size={34}/><span>Travel Memory<small>旅途手帳</small></span></a>
+            <a className={styles.brand} href="/"><Compass size={34}/><span>行旅錄<small>記所行，藏所感</small></span></a>
             <div className={styles.copy}>
                 <span className={styles.eyebrow}>YOUR JOURNEY, YOUR SPACE</span>
-                <h1>{mode === 'login' ? '歡迎回來。' : '建立你的旅途手帳。'}</h1>
+                <h1>{mode === 'login' ? '歡迎回來。' : '建立你的行旅錄。'}</h1>
                 <p>{mode === 'login' ? '登入後繼續收藏旅行、照片與心情。' : '帳號資料只用於登入與區分你的私人旅行內容。'}</p>
             </div>
             <div className={styles.tabs} role="tablist" aria-label="登入或註冊">

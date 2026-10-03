@@ -1,10 +1,22 @@
 {
-  "run_at": "2026-09-19T18:11:18.975Z",
+  "run_at": "2026-10-03T10:55:46.900Z",
   "environment": "local development, real D1 and R2 emulation",
-  "passed": 23,
+  "passed": 27,
   "tests": [
     {
       "name": "Anonymous API is rejected",
+      "passed": true
+    },
+    {
+      "name": "Register endpoint accepts a new or existing test account",
+      "passed": true
+    },
+    {
+      "name": "Reject incorrect password",
+      "passed": true
+    },
+    {
+      "name": "Login creates authenticated session cookie",
       "passed": true
     },
     {
@@ -93,6 +105,10 @@
     },
     {
       "name": "Deleted photo is no longer accessible",
+      "passed": true
+    },
+    {
+      "name": "Logout clears session",
       "passed": true
     }
   ]

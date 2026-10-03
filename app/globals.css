@@ -14,3 +14,141 @@
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 .stats span{font-size:13px}.mini-label{font-size:12px}.account small{font-size:12px}.side-note{font-size:14px}.trip-info p,.plan-row p,.field,.helper,.diary-meta,.toolbar p{font-size:14px}.trip-info footer,.new-trip-card p,.category,.app-footer,.day-header>span{font-size:12px}.first-story p,.diary-body{font-size:16px}.mobile-signout{display:none}@media(max-width:800px){.stats span{font-size:12px}.mobile-signout{display:inline-flex}.sidebar nav{scrollbar-width:thin}}@media(max-width:520px){.stats{grid-template-columns:repeat(2,1fr);gap:18px}.stats>div:nth-child(2){border-right:0}.stats>div{flex-direction:row;text-align:left;justify-content:flex-start;padding-left:18px;gap:10px}.stats span{font-size:12px}.stats strong{font-size:26px}.top-actions{gap:3px}}
+
+.memory-day { padding: 24px; margin: 20px 0; }
+.memory-day section { margin-top: 22px; }
+.memory-day h4 { margin-bottom: 12px; color: var(--muted-foreground); }
+.memory-diary { margin-top: 16px; }
+.memory-diary p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.memory-timeline .toolbar { flex-wrap: wrap; }
+.memory-timeline .photo-card span { display: block; padding: 10px; overflow-wrap: anywhere; }
+.detail-tabs { overflow-x: auto; }
+.detail-tabs button { white-space: nowrap; }
+@media(max-width: 640px) { .memory-day { padding: 16px; } }
+
+/* Shared press feedback for navigation, filters and action controls. */
+:where(.sidebar nav button, .segmented button, .detail-tabs button, .button, .text-button, .icon-button, .task) {
+    transition: transform 160ms cubic-bezier(.2,.8,.2,1), background-color 180ms ease, color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    transform-origin: center;
+}
+:where(.sidebar nav button, .segmented button, .detail-tabs button, .button, .text-button, .icon-button, .task):active:not(:disabled) {
+    transform: scale(.96);
+    transition-duration: 70ms;
+}
+@media (hover: hover) {
+    :where(.sidebar nav button, .segmented button, .detail-tabs button):hover:not(:disabled) {
+        background-color: #e9f4f5;
+        color: #126574;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    :where(.sidebar nav button, .segmented button, .detail-tabs button, .button, .text-button, .icon-button, .task):active {
+        transform: none;
+    }
+}
+.settings-page { max-width: 640px; margin: 32px auto; padding: 0 20px 40px; }
+.settings-page .panel { padding: 24px; margin-top: 24px; display: grid; gap: 16px; }
+.settings-avatar { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; font-size: 32px; }
+.avatar img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
+@media(max-width:520px) { .top-actions { gap: 5px; flex-wrap: wrap; justify-content: flex-end; } .top-actions .button { padding: 7px 9px; font-size: 12px; } }
+/* Keep the initial visible until a custom photo has loaded successfully. */
+.avatar { position: relative; flex-shrink: 0; overflow: hidden; font-weight: 700; }
+.avatar img { position: absolute; inset: 0; display: block; }
+.account > .account-profile { margin-left: 0; display: flex; align-items: center; gap: 10px; min-width: 0; border-radius: 8px; }
+.account-profile:hover strong { color: var(--primary); }
+.mobile-account-profile { display: none; }
+@media(max-width:800px) {
+    .mobile-account-profile { display: flex; align-items: center; gap: 6px; border-radius: 8px; }
+    .mobile-account-profile > span:last-child { max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+    .topbar { gap: 8px; }
+    .topbar > span { min-width: 0; flex: 1; }
+    .top-actions { flex-shrink: 0; }
+}
+
+/* Travel journal theme */
+:root {
+    --background: #f7f3eb;
+    --foreground: #243f3d;
+    --primary: #23675e;
+    --primary-foreground: #fff;
+    --card: #fffdf8;
+    --muted: #eeeade;
+    --muted-foreground: #6b7970;
+    --border: #e3ddcf;
+    --input: #e3ddcf;
+    --ring: #23675e;
+}
+body {
+    background-image: radial-gradient(#958b6d14 .7px, transparent .7px);
+    background-size: 7px 7px;
+}
+.sidebar { background: #fffdf8; border-right-color: #e3ddcf; }
+.brand { color: #23675e; }
+.brand small { color: #a47a50; letter-spacing: 3.5px; }
+.sidebar nav .active { background: #e5eee4; color: #23675e; box-shadow: inset 3px 0 #cf7749; }
+.side-note { border-top: 1px dashed #d9ceba; padding-top: 24px; }
+.mini-label { color: #a17449; }
+.topbar { border-bottom-style: dashed; }
+.page-heading h1, .detail-title h1, .settings-page h1 { letter-spacing: -.8px; color: #234f46; }
+.page-heading { position: relative; padding-bottom: 32px; }
+.page-heading::after { content: ''; display: block; width: 48px; height: 4px; border-radius: 4px; background: #ce784a; margin-top: 18px; }
+.button { border-radius: 12px; }
+.button.primary { box-shadow: 0 4px 10px #23675e18; }
+.button.light { background: #fff5dc; color: #235248; }
+.stats { background: #fffcf5; border-color: #e5dbca; box-shadow: 0 6px 22px #71604407; padding: 24px 8px; }
+.stats strong { color: #245b50; font-size: 32px; }
+.stats svg { background: #e7eee2; color: #47765a; padding: 9px; width: 42px; height: 42px; border-radius: 13px; }
+.stats > div:nth-child(2) svg { background: #f9e6d5; color: #ae633b; }
+.stats > div:nth-child(3) svg { background: #f3edcf; color: #8c7837; }
+.stats > div:nth-child(4) svg { background: #e5e9f0; color: #62758a; }
+.panel, .day-card, .diary-card, .place-row { background: #fffdf8; border-color: var(--border); box-shadow: 0 5px 18px #58452206; }
+.panel-head { background: #fffcf5; }
+.map-footer { background: #f7f8ef; color: #647861; }
+.countdown { background: radial-gradient(ellipse at top right, #4e887366, transparent 65%), #214f45; border: 1px solid #335c4d; box-shadow: 0 8px 24px #234f4517; }
+.countdown .eyebrow { color: #e3c197; }
+.countdown-bottom { border-top: 1px dashed #b4c3a266; padding-top: 18px; }
+.countdown-plane { color: #edcf98; }
+.count-number { color: #f7e9c9; }
+.eyebrow { color: #997044; }
+.count-badge, .pill { background: #eaf0e3; color: #486847; }
+.trip-card { background: #fffdf8; border-color: #dfd5c3; box-shadow: 0 5px 16px #5543240a; transition: transform 180ms ease, box-shadow 180ms ease; }
+.trip-info { border-top: 1px dashed #e1d4bc; }
+.trip-cover { border: 7px solid #fffdf8; border-radius: 15px 15px 5px 5px; }
+.new-trip-card { background: #faf6ec; border-color: #c9b994; }
+.first-story { background: #fffcf5; border: 1px solid #e2d6c2; box-shadow: 0 6px 22px #66503508; }
+.segmented { background: #ece8dc; padding: 5px; border-radius: 12px; }
+.segmented button.on { background: #fffdf8; color: #235e51; box-shadow: 0 2px 7px #67553513; }
+.detail-tabs { border-bottom-color: #ddd2be; }
+.detail-tabs button.active { color: #23675e; border-bottom-color: #c77a4a; }
+.day-header { background: #f4efdf; border-bottom: 1px dashed #daceb8; }
+.day-header > span { color: #a4663f; }
+.budget-card { background: #f4e6d1; color: #715735; border: 1px solid #e4d1b3; }
+.photo-card { padding: 7px; background: #fffdf8; border: 1px solid #e7dfd0; box-shadow: 0 4px 12px #5d482710; }
+.photo-card > img { border-radius: 5px; }
+.diary-card { border-top: 3px solid #cfaa72; }
+.diary-body { line-height: 2; }
+.empty-state { background: #fcf9f0; border-color: #ccbea4; }
+.avatar { background: #e5ebdc; color: #345f48; border: 1px solid #d6dfcb; }
+.memory-timeline { position: relative; }
+.memory-day { position: relative; margin-left: 24px; overflow: visible; border-left: 3px solid #9bb493; }
+.memory-day::before { content: ''; position: absolute; width: 12px; height: 12px; border: 3px solid #f7f3eb; border-radius: 50%; background: #c67d4d; left: -32px; top: 40px; box-shadow: 0 0 0 1px #c67d4d; }
+.memory-day::after { content: ''; position: absolute; left: -27px; top: 55px; bottom: -44px; border-left: 1px dashed #c4b599; }
+.memory-day:last-child::after { display: none; }
+.memory-day .section-heading { margin-top: 5px; }
+.memory-diary { border-left: 2px solid #d3b785; padding-left: 16px; }
+.app-footer { border-top: 1px dashed #d9ceba; color: #8b806c; padding-top: 20px; }
+@media(hover:hover) {
+    .trip-card:hover { transform: translateY(-3px); box-shadow: 0 10px 25px #55432414; }
+}
+@media(max-width:800px) {
+    .sidebar { border-bottom-color: #e3ddcf; }
+    .stats { padding: 18px 0; }
+    .stats strong { font-size: 25px; }
+    .stats svg { width: 35px; height: 35px; padding: 7px; }
+}
+@media(prefers-reduced-motion:reduce) { .trip-card:hover { transform: none; } }
+/* Reserve a separate row below the cover's status badge. */
+.destination-type { padding: 49px 24px 10px; }
+.destination-type > span { line-height: 1.5; }
+.destination-type > strong { display: block; font-size: 32px; line-height: 1.5; letter-spacing: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.destination-type > svg { pointer-events: none; }

@@ -221,3 +221,16 @@ async function clearFailedLogins(email: string, request: Request) {
     const key = await attemptKey(email, request);
     await database().prepare('DELETE FROM auth_attempts WHERE attempt_key=?').bind(key).run();
 }
+
+export async function changePassword(user: AppUser, current: string, next: string, request: Request) {
+    if (next.length < 10 || next.length > 128) throw new Error('新密碼需為 10 到 128 個字元。');
+    if (current.length > 128) throw new Error('目前密碼不正確。');
+    const verified = await authenticateUser(user.email, current, request);
+    if (!verified || verified.userId !== user.userId) throw new Error('目前密碼不正確。');
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const hash = await derivePassword(next, salt, PASSWORD_ITERATIONS);
+    await database().batch([
+        database().prepare('UPDATE users SET password_hash=?,password_salt=?,password_iterations=? WHERE id=?').bind(hash, bytesToBase64Url(salt), PASSWORD_ITERATIONS, user.userId),
+        database().prepare('DELETE FROM sessions WHERE user_id=?').bind(user.userId),
+    ]);
+}
