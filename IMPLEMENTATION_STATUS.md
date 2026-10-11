@@ -161,3 +161,11 @@ GitHub 需要一次性設定：
 - 頭貼使用私人 R2 的 avatars/<userId>，上限 2 MB，僅登入本人可讀寫；未新增資料表。
 - 新增旅行時間軸（lib/timeline.ts、app/travel-timeline.tsx）及照片缺少資訊篩選。
 - 新增 tests/timeline.test.ts 與 tests/account-integration.mjs（限本機測試帳號）。
+
+## 2026-10-12 接手補充
+
+- /settings 支援訪客外觀與資料匯出；登入後另有個人資料及安全設定。
+- 主題與動效偏好：travel_theme、travel_motion Cookie，由 layout 讀取避免初始閃爍。
+- lib/guest.ts：IndexedDB travel-memory-guest/state 儲存紀錄和照片 Blob；登入後由使用者選擇匯入現有 API。
+- 訪客備份為含照片 Base64 的 JSON，尚無 JSON 備份還原介面。
+- 無正式資料庫結構變更；登入限流仍保留。

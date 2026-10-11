@@ -4,6 +4,6 @@ import Settings from './settings';
 export const dynamic = 'force-dynamic';
 export default async function Page() {
     const user = await getCurrentUser();
-    if (!user) redirect('/signin');
-    return <Settings name={user.displayName} email={user.email}/>;
+
+    return <Settings name={user?.displayName || "訪客"} email={user?.email || ""} guest={!user}/>;
 }
