@@ -24,6 +24,15 @@ r=await api({action:'save',entity:'place',trip_id:tripId,data:{name:'bad',countr
 r=await api({action:'save',entity:'diary',trip_id:tripId,data:{date:'2026-01-02',mood:'開心',title:'Test diary',body:'儲存後重新載入仍然看得見。'}});check('Save mood diary',r.status===200);const diaryId=r.data.id;
 r=await api({action:'save',entity:'diary',id:diaryId,trip_id:tripId,data:{date:'2026-01-02',mood:'感動',title:'Updated diary',body:'更新成功'}});check('Edit diary',r.status===200);
 r=await api({action:'save',entity:'itinerary',trip_id:tripId,data:{date:'2026-01-01',time:'12:30',category:'交通',title:'Airport train',note:'test',cost:300}});check('Save itinerary and budget',r.status===200);
+const firstStop=r.data.id;
+r=await api({action:'save',entity:'itinerary',trip_id:tripId,data:{date:'2026-01-01',time:'13:00',category:'景點',title:'Second stop',lat:35.68,lng:139.76,transport_mode:'大眾運輸',transport_minutes:25,address:'1 Test Street'}});check('Add another stop on the same day',r.status===200&&r.data.id!==firstStop);
+const route=(await get()).itinerary.filter(x=>x.trip_id===tripId&&x.date==='2026-01-01');
+check('Same-day stops and incoming transport persist',route.length===2&&route.some(x=>x.id===r.data.id&&x.lat===35.68&&x.lng===139.76&&x.transport_mode==='大眾運輸'&&x.transport_minutes===25&&x.address==='1 Test Street'));
+const selectedStop=r.data.id;
+const transportPlan=JSON.stringify({from:'first',to:'second',source:'manual',option:{label:'大眾運輸',minutes:25,distanceMeters:2400,steps:[{label:'搭乘備註',detail:'上野 → 淺草',minutes:null}]}});
+r=await api({action:'save',entity:'itinerary',id:selectedStop,trip_id:tripId,data:{...route.find(x=>x.id===selectedStop),transport_plan:transportPlan}});
+check('Saved station-to-station transport detail survives reload',r.status===200&&(await get()).itinerary.find(x=>x.id===selectedStop)?.transport_plan===transportPlan);
+
 r=await api({action:'save',entity:'itinerary',trip_id:tripId,data:{date:'2026-01-04',time:'12:30',category:'交通',title:'out of range',cost:0}});check('Reject dates outside trip',r.status===400);
 r=await api({action:'save',entity:'task',trip_id:tripId,data:{title:'Flight',done:0}});check('Add preparation item',r.status===200);const taskId=r.data.id;
 r=await api({action:'save',entity:'task',trip_id:tripId,id:taskId,data:{title:'Flight',done:1}});check('Toggle preparation item',r.status===200);

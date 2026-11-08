@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./palette.css";
 import { cookies } from "next/headers";
 export const metadata: Metadata = { title: "行旅錄｜記所行，藏所感", description: "收藏世界足跡與旅行回憶，期待下一次出發。", icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" } };
 export default async function RootLayout({ children }: {

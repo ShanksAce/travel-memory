@@ -35,7 +35,7 @@ export async function POST(req: Request) {
         const taken = exif.DateTimeOriginal || exif.CreateDate;
         let date = String(form.get('date') || trip.start_date);
         let source = '手動日期／旅行地點';
-        if (taken instanceof Date && !isNaN(taken.getTime())) {
+        if (form.get('use_selected_date') !== '1' && taken instanceof Date && !isNaN(taken.getTime())) {
             date = [taken.getFullYear(), String(taken.getMonth() + 1).padStart(2, '0'), String(taken.getDate()).padStart(2, '0')].join('-');
             source = 'EXIF 拍攝日期';
         }

@@ -1,7 +1,7 @@
 {
-  "run_at": "2026-10-03T10:55:46.900Z",
+  "run_at": "2026-11-08T11:17:52.182Z",
   "environment": "local development, real D1 and R2 emulation",
-  "passed": 27,
+  "passed": 30,
   "tests": [
     {
       "name": "Anonymous API is rejected",
@@ -49,6 +49,18 @@
     },
     {
       "name": "Save itinerary and budget",
+      "passed": true
+    },
+    {
+      "name": "Add another stop on the same day",
+      "passed": true
+    },
+    {
+      "name": "Same-day stops and incoming transport persist",
+      "passed": true
+    },
+    {
+      "name": "Saved station-to-station transport detail survives reload",
       "passed": true
     },
     {

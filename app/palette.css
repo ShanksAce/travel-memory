@@ -1,0 +1,26 @@
+:root { --background:#f6f3ed; --card:#fffdf9; --foreground:#302923; --primary:#883f2b; --primary-foreground:#fffdf9; --accent:#a85c41; --muted-foreground:#685a50; --muted:#eee7dc; --border:#dcd2c3; --hero:#49312b; --hero-accent:#f4ded0; }
+html[data-theme='forest'] { --background:#f0f3ec; --card:#fcfdf9; --foreground:#243429; --primary:#325d48; --primary-foreground:#ffffff; --accent:#8b6338; --muted-foreground:#526257; --muted:#e2eadf; --border:#cedbd0; --hero:#234538; --hero-accent:#ebd5b6; }
+html[data-theme='ocean'] { --background:#eef3f6; --card:#fcfdff; --foreground:#223448; --primary:#245a7a; --primary-foreground:#ffffff; --accent:#9b593f; --muted-foreground:#526477; --muted:#e0eaf0; --border:#cfdae4; --hero:#243e58; --hero-accent:#f4d2be; }
+html[data-theme='night'] { color-scheme:dark; --background:#171b26; --card:#222837; --foreground:#edf0f7; --primary:#c1b8ef; --primary-foreground:#211b33; --accent:#e5aa82; --muted-foreground:#b5bdd0; --muted:#2e3649; --border:#444e65; --hero:#302748; --hero-accent:#f4d5be; }
+/* Shared color roles keep each theme consistent across screens. */
+html :is(.sidebar,.panel,.day-card,.diary-card,.place-row,.trip-card,.photo-card,.first-story,.stats,dialog,.button:not(.primary,.danger),.field input,.field select,.field textarea,.search-box,.toolbar select,.segmented button.on) { background:var(--card); color:var(--foreground); border-color:var(--border); }
+html :is(.panel-head,.map-footer,.day-header,.segmented,.new-trip-card,.empty-state,.budget-card,.avatar,.pill,.count-badge,.category,.status,.status.future) { background:var(--muted); color:var(--foreground); border-color:var(--border); }
+html :is(.brand,.text-button,.detail-tabs button.active,.stats strong,.segmented button.on) { color:var(--primary); }
+html :is(.page-heading h1,.detail-title h1,.settings-page h1) { color:var(--foreground); }
+html :is(.sidebar nav button,.detail-tabs button,.topbar,.muted,.helper,.eyebrow,.brand small,.mini-label,.app-footer,.trip-info p,.trip-info footer,.icon-button,.field,.stats span,.diary-meta,.diary-meta>span) { color:var(--muted-foreground); }
+html :is(.sidebar nav .active,.stats svg) { background:var(--muted); color:var(--primary); }
+.sidebar nav .active { box-shadow:inset 3px 0 var(--accent); }
+html .button.primary { background:var(--primary); color:var(--primary-foreground); border-color:var(--primary); }
+html :is(.countdown,.toast) { background:var(--hero); color:#fffdf9; border-color:color-mix(in srgb,var(--hero-accent) 25%,var(--hero)); }
+html .countdown :is(p,.eyebrow,.countdown-plane,.countdown-destination,.count-number,.countdown-bottom) { color:var(--hero-accent); }
+html .page-heading::after,html .memory-day::before { background:var(--accent); }
+html :is(.memory-day,.diary-card,.memory-diary,.detail-tabs button.active) { border-color:var(--accent); }
+html :is(.trip-info,.trip-cover,.topbar,.app-footer,.side-note) { border-color:var(--border); }
+html .destination-type { background:var(--muted); color:var(--foreground); }
+html :focus-visible { outline-color:var(--accent); }
+@media(hover:hover) {
+  html :is(.sidebar nav button,.segmented button,.detail-tabs button,.icon-button):hover:not(:disabled,.photo-close) { background:var(--muted); color:var(--primary); }
+}
+html[data-theme='night'] .photo-close { background:#171b26dd; color:#fff; }
+
+html .detail-tabs button.active { color:var(--primary); }

@@ -1,11 +1,12 @@
 'use client';
+import PasswordField from '../password-field';
 import { useState, useEffect, type FormEvent } from 'react';
 import Avatar from '../avatar';
 import {exportGuest} from '../../lib/guest';
 export default function Settings({ name, email, guest = false }: { name: string; email: string; guest?: boolean }) {
     const [busy, setBusy] = useState(false), [message, setMessage] = useState(''), [error, setError] = useState(''), [version, setVersion] = useState(0), [hasAvatar, setHasAvatar] = useState(true);
     const [section, setSection] = useState('appearance'), [theme, setTheme] = useState('journal'), [motion, setMotion] = useState(true), [displayName, setDisplayName] = useState(name);
-    const themes = [{id:'journal',name:'暖紙手帳',colors:['#f7f3eb','#23675e','#ce784a']},{id:'forest',name:'山林青綠',colors:['#eef4ed','#32674b','#88a95c']},{id:'ocean',name:'海灣晴藍',colors:['#edf4fa','#28668b','#54a9bb']},{id:'night',name:'暮夜深色',colors:['#172323','#8fc9ae','#e0b07c']}];
+    const themes = [{id:'journal',name:'暖紙手帳',colors:["#f6f3ed","#883f2b","#a85c41"]},{id:'forest',name:'山林青綠',colors:["#f0f3ec","#325d48","#8b6338"]},{id:'ocean',name:'海灣晴藍',colors:["#eef3f6","#245a7a","#9b593f"]},{id:'night',name:'暮夜深色',colors:["#171b26","#c1b8ef","#e5aa82"]}];
     useEffect(() => { setTheme(document.documentElement.dataset.theme || 'journal'); setMotion(document.documentElement.dataset.motion !== 'reduce'); }, []);
     function preference(key: string, value: string) { document.documentElement.dataset[key] = value; document.cookie = 'travel_' + key + '=' + value + '; Path=/; Max-Age=31536000; SameSite=Lax'; }
     async function exportRecords() {
@@ -38,7 +39,7 @@ export default function Settings({ name, email, guest = false }: { name: string;
                 input.value = '';
             }}/></label><button className="text-button" disabled={busy || !hasAvatar} onClick={async () => { if (await send('/api/account/avatar', { method: 'DELETE' }, '已恢復預設頭貼。')) setHasAvatar(false); }}>移除頭貼</button></section>
         <form hidden={section!=='profile'} className="panel" onSubmit={e => void save(e, 'name')}><h2>顯示名稱</h2><label className="field">使用者名稱<input name="name" defaultValue={name} required maxLength={80} autoComplete="nickname"/></label><button className="button primary" disabled={busy}>儲存名稱</button></form>
-        <form hidden={section!=='security'} className="panel" onSubmit={e => void save(e, 'password')}><p>登入帳號：{email}</p><h2>修改密碼</h2><p className="helper">更新後所有裝置都需要重新登入。</p><label className="field">目前密碼<input name="current" type="password" required maxLength={128} autoComplete="current-password"/></label><label className="field">新密碼（10–128 個字元）<input name="password" type="password" required minLength={10} maxLength={128} autoComplete="new-password"/></label><label className="field">再次輸入新密碼<input name="confirm" type="password" required minLength={10} maxLength={128} autoComplete="new-password"/></label><button className="button primary" disabled={busy}>更新密碼</button></form>
+        <form hidden={section!=='security'} className="panel" onSubmit={e => void save(e, 'password')}><p>登入帳號：{email}</p><h2>修改密碼</h2><p className="helper">更新後所有裝置都需要重新登入。</p><PasswordField className="field" label="目前密碼" name="current" required maxLength={128} autoComplete="current-password"/><PasswordField className="field" label="新密碼（10–128 個字元）" name="password" required minLength={10} maxLength={128} autoComplete="new-password"/><PasswordField className="field" label="再次輸入新密碼" name="confirm" required minLength={10} maxLength={128} autoComplete="new-password"/><button className="button primary" disabled={busy}>更新密碼</button></form>
 <section hidden={section!=='data'} className="panel"><h2>資料管理</h2><p>匯出旅行文字紀錄與照片索引，保存一份備份。</p><p className="helper">{guest ? '訪客備份包含照片。登入後可從首頁匯入帳號。' : '匯出檔不包含照片原始檔，目前尚未提供匯入還原。'}</p><button className="button" disabled={busy} onClick={exportRecords}>匯出旅行紀錄</button></section>
     </main>;
 }

@@ -1,0 +1,1 @@
+ALTER TABLE itinerary ADD COLUMN address TEXT NOT NULL DEFAULT '';

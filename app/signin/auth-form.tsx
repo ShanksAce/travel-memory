@@ -1,4 +1,5 @@
 'use client';
+import PasswordField from '../password-field';
 
 import { useState, type FormEvent } from 'react';
 import { Compass, LoaderCircle } from 'lucide-react';
@@ -47,7 +48,7 @@ export default function AuthForm({ returnTo }: { returnTo: string }) {
             <form className={styles.form} onSubmit={submit}>
                 {mode === 'register' && <label>顯示名稱<input name="name" autoComplete="name" maxLength={80} required placeholder="例如：旅行者"/></label>}
                 <label>電子郵件<input name="email" type="email" autoComplete="email" maxLength={254} required placeholder="you@example.com"/></label>
-                <label>密碼<input name="password" type="password" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} minLength={10} maxLength={128} required placeholder="至少 10 個字元"/></label>
+                <PasswordField key={mode} className="password-field" label="密碼" name="password" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} minLength={10} maxLength={128} required placeholder="至少 10 個字元"/>
                 {error && <div className={styles.error} role="alert">{error}</div>}
                 <button className={`button primary ${styles.submit}`} disabled={busy}>{busy && <LoaderCircle size={17} className="spin"/>}{mode === 'login' ? '登入我的手帳' : '建立帳號'}</button>
             </form>

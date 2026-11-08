@@ -1,10 +1,12 @@
 import { z } from 'zod';
+import { readTransport } from './transport.ts';
 export const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(s => { const d = new Date(s + 'T12:00:00Z'); return !isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s; }, '日期無效');
 const required = z.string().trim().min(1, '請填寫必要欄位').max(160);
 export const tripInput = z.object({ title: required, country: required, city: required, start_date: day, end_date: day, description: z.string().max(3000).default('') }).refine(x => x.end_date >= x.start_date, '回程日期不能早於出發日期').refine(x => (Date.parse(x.end_date) - Date.parse(x.start_date)) / 86400000 <= 365, '每趟旅行最多 366 天');
 export const placeInput = z.object({ name: required, country: required, city: required, lat: z.number().finite().min(-85).max(85), lng: z.number().finite().min(-180).max(180), date: day });
 export const diaryInput = z.object({ date: day, mood: z.enum(['開心', '感動', '平靜', '疲憊', '驚喜']), title: required, body: z.string().trim().min(1).max(12000) });
-export const itineraryInput = z.object({ date: day, time: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$|^$/), category: z.enum(['景點', '交通', '住宿', '美食', '其他']), title: required, note: z.string().max(3000).default(''), cost: z.number().finite().min(0).max(10000000).default(0) });
+export const transportModes = ['步行','開車','大眾運輸','計程車','單車','飛機','其他'] as const;
+export const itineraryInput = z.object({ date: day, time: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$|^$/), category: z.enum(['景點', '交通', '住宿', '美食', '其他']), title: required, note: z.string().max(3000).default(''), lat: z.number().finite().min(-85).max(85).nullable().optional(), lng: z.number().finite().min(-180).max(180).nullable().optional(), transport_mode: z.enum(['', ...transportModes]).optional(), address: z.string().trim().max(500).optional(), transport_plan: z.string().max(26000).refine(v=>v===''||!!readTransport(v),'交通方案格式無效').optional(), transport_minutes: z.number().int().min(0).max(1440).nullable().optional(), cost: z.number().finite().min(0).max(10000000).default(0) });
 export const taskInput = z.object({ title: required, done: z.number().int().min(0).max(1).default(0) });
 export type Trip = {
     id: string;
@@ -43,6 +45,12 @@ export type Itinerary = {
     title: string;
     note: string;
     cost: number;
+    lat?: number | null;
+    lng?: number | null;
+    transport_mode?: string;
+    transport_minutes?: number | null;
+    address?: string;
+    transport_plan?: string;
 };
 export type Task = {
     id: string;
