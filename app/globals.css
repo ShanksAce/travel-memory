@@ -281,3 +281,8 @@ html[data-motion='reduce'] :is(button,a):active,html[data-motion='reduce'] .trip
 .replay-controls label { flex:1; min-width:140px; display:flex; gap:10px; align-items:center; }
 .replay-controls input { flex:1; min-width:40px; }
 @media(max-width:650px) { .replay-main { grid-template-columns:1fr; } .replay-main .world-map { height:260px; } .replay-memory { max-height:none; } }
+.country-footprints { margin-top:20px; padding:16px; display:grid; gap:8px; }
+.country-heading,.country-trip { display:flex; align-items:center; flex-wrap:wrap; gap:8px 16px; }
+.country-heading { justify-content:space-between; }
+.country-trip { padding-top:8px; border-top:1px solid var(--border); }
+.photo-lookup { display:flex; gap:8px; align-items:baseline; margin:8px 0; }

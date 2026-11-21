@@ -66,6 +66,8 @@ export type Photo = {
     size: number;
     date: string;
     city: string;
+    country?: string;
+    region?: string;
     lat: number | null;
     lng: number | null;
     source: string;

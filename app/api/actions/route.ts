@@ -80,7 +80,7 @@ export async function POST(req: Request) {
             await db().prepare('DELETE FROM ' + table + ' WHERE id=? AND trip_id=?').bind(id, input.trip_id).run();
             return Response.json({ ok: true });
         }
-        const schemas = { place: placeInput, diary: diaryInput, itinerary: itineraryInput, task: taskInput, photo: z.object({ date: day, city: z.string().trim().min(1).max(160), caption: z.string().max(1000) }) };
+        const schemas = { place: placeInput, diary: diaryInput, itinerary: itineraryInput, task: taskInput, photo: z.object({ date: day, city: z.string().trim().min(1).max(160), caption: z.string().max(1000), country:z.string().trim().max(160).optional(),region:z.string().trim().max(160).optional() }) };
         if (input.entity === 'photo' && !input.id)
             throw new ApiError(400, '請使用相片上傳功能。');
         const data = schemas[input.entity].parse(input.data) as Record<string, string | number>;

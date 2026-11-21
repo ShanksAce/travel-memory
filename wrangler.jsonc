@@ -6,6 +6,7 @@
   "main": "vinext/server/fetch-handler",
   "workers_dev": true,
   "preview_urls": true,
+  "keep_vars": true,
   "d1_databases": [
     {
       "binding": "DB",

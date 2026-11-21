@@ -2,6 +2,8 @@
 import PasswordField from '../password-field';
 import { useState, useEffect, type FormEvent } from 'react';
 import Avatar from '../avatar';
+import {exportAccountBackup, restoreAccountBackup} from '../../lib/backup-client';
+import {maxBackupBytes} from '../../lib/backup';
 import {exportGuest} from '../../lib/guest';
 export default function Settings({ name, email, guest = false }: { name: string; email: string; guest?: boolean }) {
     const [busy, setBusy] = useState(false), [message, setMessage] = useState(''), [error, setError] = useState(''), [version, setVersion] = useState(0), [hasAvatar, setHasAvatar] = useState(true);
@@ -13,6 +15,30 @@ export default function Settings({ name, email, guest = false }: { name: string;
         setBusy(true); setError('');
         try { const r = guest ? null : await fetch('/api/data'); if (r && !r.ok) throw Error('無法匯出，請重新登入後再試。'); const data = guest ? await exportGuest() : await r!.json(); const url = URL.createObjectURL(new Blob([JSON.stringify({exported_at:new Date().toISOString(),note:'包含文字紀錄與照片索引，照片原始檔需另外下載。',...data as object},null,2)],{type:'application/json'})); const a=document.createElement('a'); a.href=url; a.download='travel-memory-'+new Date().toISOString().slice(0,10)+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000); setMessage('已匯出文字紀錄與照片索引。'); }
         catch(e) { setError((e as Error).message); } finally {setBusy(false);}
+    }
+    const [backupTrip,setBackupTrip]=useState('');
+    const [backupTrips,setBackupTrips]=useState<{id:string;title:string}[]>([]);
+    useEffect(()=>{
+        if(guest || section!=='data') return;
+        const controller=new AbortController();
+        void fetch('/api/data',{signal:controller.signal}).then(r=>r.ok?r.json():null).then(value=>{
+            const data=value as {trips?:{id:string;title:string}[]}|null;
+            if(data?.trips) setBackupTrips(data.trips);
+        }).catch(()=>{});
+        return ()=>controller.abort();
+    },[guest,section]);
+    async function fullBackup() {
+        setBusy(true); setError(''); setMessage('');
+        try {
+            const blob=new Blob([JSON.stringify(await exportAccountBackup(backupTrip || undefined))],{type:'application/json'});
+            if(blob.size>maxBackupBytes) throw Error('單份備份上限 32 MB。');
+            const url=URL.createObjectURL(blob);
+            const link=document.createElement('a');
+            link.href=url;link.download='travel-memory-backup.json';link.click();
+            setTimeout(()=>URL.revokeObjectURL(url),1000);
+            setMessage('已下載完整旅行備份。');
+        } catch(error) {setError((error as Error).message);}
+        finally {setBusy(false);}
     }
     async function send(url: string, init: RequestInit, success: string) {
         setBusy(true); setError(''); setMessage('');
@@ -40,7 +66,20 @@ export default function Settings({ name, email, guest = false }: { name: string;
             }}/></label><button className="text-button" disabled={busy || !hasAvatar} onClick={async () => { if (await send('/api/account/avatar', { method: 'DELETE' }, '已恢復預設頭貼。')) setHasAvatar(false); }}>移除頭貼</button></section>
         <form hidden={section!=='profile'} className="panel" onSubmit={e => void save(e, 'name')}><h2>顯示名稱</h2><label className="field">使用者名稱<input name="name" defaultValue={name} required maxLength={80} autoComplete="nickname"/></label><button className="button primary" disabled={busy}>儲存名稱</button></form>
         <form hidden={section!=='security'} className="panel" onSubmit={e => void save(e, 'password')}><p>登入帳號：{email}</p><h2>修改密碼</h2><p className="helper">更新後所有裝置都需要重新登入。</p><PasswordField className="field" label="目前密碼" name="current" required maxLength={128} autoComplete="current-password"/><PasswordField className="field" label="新密碼（10–128 個字元）" name="password" required minLength={10} maxLength={128} autoComplete="new-password"/><PasswordField className="field" label="再次輸入新密碼" name="confirm" required minLength={10} maxLength={128} autoComplete="new-password"/><button className="button primary" disabled={busy}>更新密碼</button></form>
-<section hidden={section!=='data'} className="panel"><h2>資料管理</h2><p>匯出旅行文字紀錄與照片索引，保存一份備份。</p><p className="helper">{guest ? '訪客備份包含照片。登入後可從首頁匯入帳號。' : '匯出檔不包含照片原始檔，目前尚未提供匯入還原。'}</p><button className="button" disabled={busy} onClick={exportRecords}>匯出旅行紀錄</button></section>
+<section hidden={section!=='data'} className="panel"><h2>資料管理</h2><p>匯出旅行文字紀錄與照片索引，保存一份備份。</p><p className="helper">{guest ? '訪客備份包含照片。登入後可從首頁匯入帳號。' : '文字匯出不包含照片。完整旅行備份含原始照片，每份上限 32 MB。'}</p><button className="button" disabled={busy} onClick={exportRecords}>匯出旅行紀錄</button>{!guest&&<>
+    <label className="field">備份範圍<select value={backupTrip} onChange={event=>setBackupTrip(event.target.value)} disabled={busy}><option value="">所有旅行</option>{backupTrips.map(trip=><option key={trip.id} value={trip.id}>{trip.title}</option>)}</select></label>
+    <button className="button primary" disabled={busy} onClick={fullBackup}>下載完整旅行備份</button>
+    <form onSubmit={async event=>{
+        event.preventDefault();
+        const form=event.currentTarget, file=new FormData(form).get('backup');
+        if(!(file instanceof File)||!file.size)return;
+        setBusy(true);setMessage('');setError('');
+        try {const result=await restoreAccountBackup(file);setMessage(result.duplicate?'這份備份已還原過。':'已新增 '+result.trips+' 趟旅行。');form.reset();}
+        catch(error){setError((error as Error).message);}
+        finally{setBusy(false);}
+    }}><label className="field">選擇旅行備份 JSON<input name="backup" type="file" accept=".json,application/json" required disabled={busy}/></label>
+    <p className="helper">還原內容會新增為旅行副本。</p><button className="button" disabled={busy}>還原備份</button></form>
+    </>}</section>
     </main>;
 }
 

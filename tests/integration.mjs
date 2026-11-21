@@ -13,7 +13,7 @@ const cookie=login.headers.getSetCookie().map(x=>x.split(';')[0]).join('; ');
 check('Login creates authenticated session cookie',login.status===200&&Boolean(cookie));
 async function api(payload){const r=await fetch(base+'/api/actions',{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json',Origin:base},body:JSON.stringify(payload)});return {status:r.status,data:await r.json()}}
 const get=async()=>{const r=await fetch(base+'/api/data',{headers:{Cookie:cookie}});assert.equal(r.status,200);return r.json()};
-let tripId;
+let tripId, restoredId;
 try{
 let r=await api({action:'save',entity:'trip',data:{title:'Integration test',country:'日本',city:'東京',start_date:'2026-01-01',end_date:'2026-01-03'}});
 check('Create trip in persistent database',r.status===200&&r.data.id);tripId=r.data.id;
@@ -44,12 +44,33 @@ let upload=await fetch(base+'/api/photos',{method:'POST',headers:{Cookie:cookie,
 let image=await fetch(base+'/api/photos/'+photo.id,{headers:{Cookie:cookie}});check('Read authenticated original image',image.status===200&&Buffer.compare(Buffer.from(await image.arrayBuffer()),png)===0);
 image=await fetch(base+'/api/photos/'+photo.id);check('Reject anonymous photo access',image.status===401);
 form=new FormData();form.set('trip_id',tripId);form.set('file',new Blob(['not-an-image'],{type:'image/jpeg'}),'fake.jpg');upload=await fetch(base+'/api/photos',{method:'POST',headers:{Cookie:cookie,Origin:base},body:form});check('Reject disguised non-image upload',upload.status===400);
-r=await api({action:'save',entity:'photo',id:photo.id,trip_id:tripId,data:{date:'2026-01-03',city:'京都',caption:'Manually corrected'}});check('Correct photo classification',r.status===200);
-const readback=await get();check('Reload preserves related records',readback.trips.some(t=>t.id===tripId)&&readback.diaries.some(d=>d.id===diaryId&&d.title==='Updated diary')&&readback.tasks.some(t=>t.id===taskId&&t.done===1)&&readback.photos.some(p=>p.id===photo.id&&p.city==='京都'));
+r=await api({action:'save',entity:'photo',id:photo.id,trip_id:tripId,data:{date:'2026-01-03',city:'京都',country:'日本',region:'東山區',caption:'Manually corrected'}});check('Correct photo classification',r.status===200);
+const readback=await get();check('Reload preserves related records',readback.trips.some(t=>t.id===tripId)&&readback.diaries.some(d=>d.id===diaryId&&d.title==='Updated diary')&&readback.tasks.some(t=>t.id===taskId&&t.done===1)&&readback.photos.some(p=>p.id===photo.id&&p.city==='京都'&&p.country==='日本'&&p.region==='東山區'));
+
+const snapshot={format:'travel-memory-backup-v1',trips:readback.trips.filter(t=>t.id===tripId)};
+for(const key of ['places','diaries','itinerary','tasks','photos'])
+    snapshot[key]=readback[key].filter(row=>row.trip_id===tripId);
+snapshot.photos[0].base64=png.toString('base64');
+const restore=(payload, session=cookie)=>fetch(base+'/api/backup',{method:'POST',headers:{Cookie:session,Origin:base,'Content-Type':'application/json'},body:JSON.stringify(payload)});
+check('Reject anonymous backup restore',(await restore(snapshot,'')).status===401);
+const corrupt=structuredClone(snapshot);
+corrupt.photos[0].base64='dGVzdA==';
+check('Reject invalid backup photo before writing',(await restore(corrupt)).status===400);
+const restoreResponse=await restore(snapshot);
+const restored=await get();
+const known=new Set(readback.trips.map(t=>t.id));
+restoredId=restored.trips.find(t=>!known.has(t.id))?.id;
+check('Restore creates a new trip without replacing the original',restoreResponse.status===200&&!!restoredId&&restored.trips.some(t=>t.id===tripId));
+const restoredPhoto=restored.photos.find(p=>p.trip_id===restoredId);
+const restoredImage=await fetch(base+'/api/photos/'+restoredPhoto?.id,{headers:{Cookie:cookie}});
+check('Restore preserves original photo bytes, location and diary',restoredImage.ok&&Buffer.compare(Buffer.from(await restoredImage.arrayBuffer()),png)===0&&restoredPhoto.region==='東山區'&&restored.diaries.some(d=>d.trip_id===restoredId&&d.title==='Updated diary'));
+const duplicate=await restore(snapshot);
+check('Repeat restore does not create another copy',duplicate.ok&&(await duplicate.json()).duplicate===true&&(await get()).trips.length===restored.trips.length);
+await api({action:'delete',entity:'trip',id:restoredId});restoredId=null;
 r=await api({action:'save',entity:'trip',id:tripId,data:{title:'Test',country:'日本',city:'東京',start_date:'2026-01-03',end_date:'2026-01-03'}});check('Prevent shrinking dates around existing records',r.status===400);
 await api({action:'delete',entity:'trip',id:tripId});const after=await get();check('Cascade delete removes all related records',!after.trips.some(t=>t.id===tripId)&&['places','diaries','itinerary','tasks','photos'].every(k=>!after[k].some(x=>x.trip_id===tripId)));
 image=await fetch(base+'/api/photos/'+photo.id,{headers:{Cookie:cookie}});check('Deleted photo is no longer accessible',image.status===404);tripId=null;
 const logout=await fetch(base+'/api/auth/logout',{method:'POST',headers:{Cookie:cookie,Origin:base}});check('Logout clears session',logout.status===200&&logout.headers.get('set-cookie')?.includes('Max-Age=0'));
 await mkdir('docs',{recursive:true});await writeFile('docs/test-results.json',JSON.stringify({run_at:new Date().toISOString(),environment:'local development, real D1 and R2 emulation',passed:results.length,tests:results},null,2));
 console.log(results.length+' integration checks passed');
-}finally{if(tripId)await api({action:'delete',entity:'trip',id:tripId})}
+}finally{if(restoredId)await api({action:'delete',entity:'trip',id:restoredId});if(tripId)await api({action:'delete',entity:'trip',id:tripId})}

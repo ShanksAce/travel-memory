@@ -108,20 +108,35 @@ export async function registerUser(name: string, email: string, password: string
     if (normalizedEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) throw new Error('請輸入有效的電子郵件。');
     if (password.length < 10 || password.length > 128) throw new Error('密碼至少 10 個字元，最多 128 個字元。');
 
-    const ownerExists = await database().prepare('SELECT id FROM users LIMIT 1').first();
-    if (ownerExists) throw new Error('此網站已完成擁有者設定，請直接登入。');
-
-    const existing = await database().prepare('SELECT id FROM users WHERE email=? LIMIT 1').bind(normalizedEmail).first();
-    if (existing) throw new Error('這個電子郵件已註冊，請直接登入。');
-
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const passwordHash = await derivePassword(password, salt, PASSWORD_ITERATIONS);
     const id = crypto.randomUUID();
     const createdAt = new Date().toISOString();
-    await database().prepare(
-        'INSERT INTO users(id,email,display_name,password_hash,password_salt,password_iterations,created_at) VALUES(?,?,?,?,?,?,?)',
-    ).bind(id, normalizedEmail, displayName, passwordHash, bytesToBase64Url(salt), PASSWORD_ITERATIONS, createdAt).run();
+    const created = await database().prepare(
+        `INSERT INTO users(id,email,display_name,password_hash,password_salt,password_iterations,created_at)
+         SELECT ?,?,?,?,?,?,? WHERE NOT EXISTS (SELECT 1 FROM users) RETURNING id`,
+    ).bind(id, normalizedEmail, displayName, passwordHash, bytesToBase64Url(salt), PASSWORD_ITERATIONS, createdAt).first<{ id: string }>();
+    if (!created) throw new Error('此網站已完成擁有者設定，請直接登入。');
     return { userId: id, displayName, email: normalizedEmail, fullName: displayName } satisfies AppUser;
+}
+
+export async function signInWithGoogle(profile: { sub?: string; email?: string; email_verified?: boolean }) {
+    const email = typeof profile.email === 'string' ? normalizeEmail(profile.email) : '';
+    // Google is authoritative for verified Gmail addresses.
+    if (typeof profile.sub !== 'string' || !profile.sub || profile.email_verified !== true || !/^[^\s@]{1,64}@gmail\.com$/.test(email)) return null;
+
+    const displayName = email.slice(0, email.indexOf('@'));
+    const salt = bytesToBase64Url(crypto.getRandomValues(new Uint8Array(16)));
+    // No password is set during Google registration. Recovery can later replace this random hash.
+    const passwordHash = bytesToBase64Url(crypto.getRandomValues(new Uint8Array(32)));
+    return database().prepare(
+        `INSERT INTO users(id,email,display_name,password_hash,password_salt,password_iterations,created_at,google_sub)
+         SELECT ?,?,?,?,?,?,?,? WHERE NOT EXISTS (SELECT 1 FROM users WHERE email<>?)
+         ON CONFLICT(email) DO UPDATE SET google_sub=excluded.google_sub
+         WHERE users.google_sub IS NULL OR users.google_sub=excluded.google_sub
+         RETURNING id`,
+    ).bind(crypto.randomUUID(), email, displayName, passwordHash, salt, PASSWORD_ITERATIONS, new Date().toISOString(), profile.sub, email)
+        .first<{ id: string }>();
 }
 
 export async function authenticateUser(email: string, password: string, request: Request) {
@@ -232,5 +247,32 @@ export async function changePassword(user: AppUser, current: string, next: strin
     await database().batch([
         database().prepare('UPDATE users SET password_hash=?,password_salt=?,password_iterations=? WHERE id=?').bind(hash, bytesToBase64Url(salt), PASSWORD_ITERATIONS, user.userId),
         database().prepare('DELETE FROM sessions WHERE user_id=?').bind(user.userId),
+        database().prepare('DELETE FROM password_resets WHERE user_id=?').bind(user.userId),
     ]);
+}
+export async function reservePasswordReset(email:string) {
+    const token=crypto.randomUUID()+crypto.randomUUID();
+    const hash=await sha256(token);
+    const now=Date.now();
+    const row=await database().prepare(
+        'INSERT INTO password_resets(user_id,token_hash,expires_at,requested_at) SELECT id,?,?,? FROM users WHERE email=? ON CONFLICT(user_id) DO UPDATE SET token_hash=excluded.token_hash,expires_at=excluded.expires_at,requested_at=excluded.requested_at WHERE password_resets.requested_at<=? RETURNING user_id',
+    ).bind(hash,now+30*60*1000,now,normalizeEmail(email),now-120000).first();
+    return row?token:null;
+}
+
+export async function consumePasswordReset(token:string,password:string) {
+    const digest=await sha256(token);
+    const now=Date.now();
+    const target=await database().prepare('SELECT user_id FROM password_resets WHERE token_hash=? AND expires_at>?').bind(digest,now).first<{user_id:string}>();
+    if (!target) return false;
+    const salt=crypto.getRandomValues(new Uint8Array(16));
+    const hash=await derivePassword(password,salt,PASSWORD_ITERATIONS);
+    const eligible='SELECT user_id FROM password_resets WHERE token_hash=? AND expires_at>?';
+    const time=Date.now();
+    const results=await database().batch([
+        database().prepare('UPDATE users SET password_hash=?,password_salt=?,password_iterations=? WHERE id IN ('+eligible+')').bind(hash,bytesToBase64Url(salt),PASSWORD_ITERATIONS,digest,time),
+        database().prepare('DELETE FROM sessions WHERE user_id IN ('+eligible+')').bind(digest,time),
+        database().prepare('DELETE FROM password_resets WHERE token_hash=?').bind(digest),
+    ]);
+    return results[0].meta.changes===1;
 }

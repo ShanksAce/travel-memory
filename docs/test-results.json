@@ -1,7 +1,7 @@
 {
-  "run_at": "2026-11-08T11:17:52.182Z",
+  "run_at": "2026-11-21T18:13:35.615Z",
   "environment": "local development, real D1 and R2 emulation",
-  "passed": 30,
+  "passed": 35,
   "tests": [
     {
       "name": "Anonymous API is rejected",
@@ -105,6 +105,26 @@
     },
     {
       "name": "Reload preserves related records",
+      "passed": true
+    },
+    {
+      "name": "Reject anonymous backup restore",
+      "passed": true
+    },
+    {
+      "name": "Reject invalid backup photo before writing",
+      "passed": true
+    },
+    {
+      "name": "Restore creates a new trip without replacing the original",
+      "passed": true
+    },
+    {
+      "name": "Restore preserves original photo bytes, location and diary",
+      "passed": true
+    },
+    {
+      "name": "Repeat restore does not create another copy",
       "passed": true
     },
     {

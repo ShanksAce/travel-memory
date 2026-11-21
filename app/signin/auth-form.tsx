@@ -7,7 +7,7 @@ import styles from './auth-form.module.css';
 
 type Mode = 'login' | 'register';
 
-export default function AuthForm({ returnTo }: { returnTo: string }) {
+export default function AuthForm({ returnTo, google, notice }: { returnTo: string; google?: boolean; notice?: string }) {
     const [mode, setMode] = useState<Mode>('login');
     const [error, setError] = useState('');
     const [busy, setBusy] = useState(false);
@@ -52,7 +52,7 @@ export default function AuthForm({ returnTo }: { returnTo: string }) {
                 {error && <div className={styles.error} role="alert">{error}</div>}
                 <button className={`button primary ${styles.submit}`} disabled={busy}>{busy && <LoaderCircle size={17} className="spin"/>}{mode === 'login' ? '登入我的手帳' : '建立帳號'}</button>
             </form>
-            <a className="button" href="/">先以訪客模式使用 →</a><p className={styles.note}>登入工作階段使用 HttpOnly Cookie；密碼不會以明文儲存。</p>
+            <div className="row">{google && <a className="button" href="/api/auth/google">{mode === 'register' ? '使用 Google 註冊' : '使用 Google 登入／註冊'}</a>}<a className="text-button" href="/recover">忘記密碼</a><a className="button" href="/">先以訪客模式使用 →</a></div>{notice && <p role="status">{notice}</p>}<p className={styles.note}>登入工作階段使用 HttpOnly Cookie；密碼不會以明文儲存。</p>
         </section>
     </main>;
 }

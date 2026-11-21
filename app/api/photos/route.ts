@@ -1,5 +1,6 @@
 import { parse } from 'exifr';
 import { db, bucket, identity, ownTrip, checkOrigin, failure, ApiError } from '../../../lib/server';
+import { reversePhotoLocation } from '../../../lib/photo-location';
 import { nearestCity } from '../../../lib/cities';
 import { day } from '../../../lib/model';
 export async function POST(req: Request) {
@@ -40,8 +41,12 @@ export async function POST(req: Request) {
             source = 'EXIF 拍攝日期';
         }
         day.parse(date);
-        const city = suggested ? suggested.city : lat !== null && lng !== null ? '待確認地點' : String(form.get('city') || trip.city);
-        if (suggested)
+        const location = form.get('lookup_region')==='1' && lat!==null && lng!==null ? await reversePhotoLocation(lat,lng) : null;
+        const country = location?.country || suggested?.country || (lat===null || lng===null ? String(trip.country) : '');
+        const region = location?.region || '';
+        const city = location?.city || (suggested ? suggested.city : lat !== null && lng !== null ? '待確認地點' : String(form.get('city') || trip.city));
+        if (location) source += '・GPS 地區反查';
+        else if (suggested)
             source += '・GPS 鄰近城市（約 ' + suggested.km + ' km）';
         else if (lat !== null && lng !== null)
             source += '・GPS 已保留';
@@ -50,7 +55,7 @@ export async function POST(req: Request) {
         const id = crypto.randomUUID(), key = user.userId + '/' + id;
         await bucket().put(key, bytes, { httpMetadata: { contentType: type } });
         try {
-            await db().prepare('INSERT INTO photos(id,trip_id,object_key,filename,content_type,size,date,city,lat,lng,source,caption) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)').bind(id, tripId, key, file.name.slice(0, 200), type, file.size, date, city.slice(0, 160), lat, lng, source, '').run();
+            await db().prepare('INSERT INTO photos(id,trip_id,object_key,filename,content_type,size,date,city,lat,lng,source,caption,country,region) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(id, tripId, key, file.name.slice(0, 200), type, file.size, date, city.slice(0, 160), lat, lng, source, '', country.slice(0,160), region).run();
         }
         catch (e) {
             await bucket().delete(key);

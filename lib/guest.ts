@@ -1,6 +1,7 @@
 'use client';
 import { parse } from 'exifr';
 import { emptyData, tripInput, placeInput, diaryInput, itineraryInput, taskInput, day, type Data } from './model';
+import { reversePhotoLocation } from './photo-location';
 import { nearestCity } from './cities';
 import { tokyoTrip, tokyoStops } from './tokyo-demo';
 const tables = {trip:'trips',place:'places',diary:'diaries',itinerary:'itinerary',task:'tasks',photo:'photos'} as const;
@@ -19,7 +20,7 @@ export async function guestAction(input: any) {
  if(input.action==='delete') {if(!existing)throw Error('找不到紀錄。');if(table==='trips'){for(const key of Object.values(tables)) {if(key==='trips')continue;(data[key] as any)=(data[key] as any[]).filter(p=>{if(p.trip_id!==input.id)return true;if(key==='photos')delete state.files[p.id];return false;});}}if(table==='photos')delete state.files[input.id];(data[table] as any)=records.filter(p=>p.id!==input.id);await store(state);return {ok:true};}
  let values:any;
  if(table==='trips'){values=tripInput.parse(input.data);if(existing && ['places','diaries','itinerary'].some(key=>(data[key as 'places'] as any[]).some(p=>p.trip_id===existing.id&&(p.date<values.start_date||p.date>values.end_date))))throw Error('旅行日期需包含已有的足跡、日記與行程。');}
- else {const trip=data.trips.find(t=>t.id===input.trip_id);if(!trip)throw Error('請先建立旅行。');const schemas={place:placeInput,diary:diaryInput,itinerary:itineraryInput,task:taskInput};values=input.entity==='photo'?{date:day.parse(input.data.date),city:String(input.data.city).trim(),caption:String(input.data.caption||'')}:schemas[input.entity as keyof typeof schemas].parse(input.data);if(values.date && input.entity!=='photo'&&(values.date<trip.start_date||values.date>trip.end_date))throw Error('日期需在旅行範圍內。');}
+ else {const trip=data.trips.find(t=>t.id===input.trip_id);if(!trip)throw Error('請先建立旅行。');const schemas={place:placeInput,diary:diaryInput,itinerary:itineraryInput,task:taskInput};values=input.entity==='photo'?{date:day.parse(input.data.date),city:String(input.data.city).trim(),caption:String(input.data.caption||''),country:String(input.data.country||'').slice(0,160),region:String(input.data.region||'').slice(0,160)}:schemas[input.entity as keyof typeof schemas].parse(input.data);if(values.date && input.entity!=='photo'&&(values.date<trip.start_date||values.date>trip.end_date))throw Error('日期需在旅行範圍內。');}
  const id=input.id||crypto.randomUUID();if(input.id&&!existing)throw Error('找不到紀錄。');
  if(existing)Object.assign(existing,values);else records.push({id,trip_id:input.trip_id,created_at:new Date().toISOString(),...values});
  await store(state);return {ok:true,id};
@@ -27,7 +28,9 @@ export async function guestAction(input: any) {
 export async function guestUpload(form:FormData){const state=await store(),file=form.get('file'),trip=state.data.trips.find(t=>t.id===form.get('trip_id'));if(!trip||!(file instanceof File))throw Error('請先建立旅行並選擇照片。');if(file.size>12*1024*1024||!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('請上傳 12 MB 以內的 JPEG、PNG 或 WebP。');let exif:any={};try{exif=await parse(await file.arrayBuffer(),{gps:true})||{};}catch{}
  const taken=exif.DateTimeOriginal||exif.CreateDate, date=form.get('use_selected_date')==='1'?day.parse(form.get('date')):taken instanceof Date&&!isNaN(taken.getTime())?[taken.getFullYear(),String(taken.getMonth()+1).padStart(2,'0'),String(taken.getDate()).padStart(2,'0')].join('-'):trip.start_date;
  const lat=Number.isFinite(exif.latitude)&&Math.abs(exif.latitude)<=90?exif.latitude:null,lng=Number.isFinite(exif.longitude)&&Math.abs(exif.longitude)<=180?exif.longitude:null;
- const city=lat!==null&&lng!==null?nearestCity(lat,lng)?.city||'待確認地點':trip.city,id=crypto.randomUUID();state.files[id]=file;state.data.photos.push({id,trip_id:trip.id,filename:file.name,content_type:file.type,size:file.size,date,city,lat,lng,source:form.get('use_selected_date')!=='1'&&taken instanceof Date?'EXIF 拍攝日期':'旅行日期／旅行地點',caption:''});await store(state);return {ok:true,id};}
+ const suggested=lat!==null&&lng!==null?nearestCity(lat,lng):null;
+ const location=form.get('lookup_region')==='1'&&lat!==null&&lng!==null?await reversePhotoLocation(lat,lng):null;
+ const city=location?.city || suggested?.city || (lat!==null&&lng!==null?'待確認地點':trip.city),id=crypto.randomUUID();state.files[id]=file;state.data.photos.push({id,trip_id:trip.id,filename:file.name,content_type:file.type,size:file.size,date,city,country:location?.country||suggested?.country||(lat===null||lng===null?trip.country:''),region:location?.region||'',lat,lng,source:form.get('use_selected_date')!=='1'&&taken instanceof Date?'EXIF 拍攝日期':'旅行日期／旅行地點',caption:''});await store(state);return {ok:true,id};}
 export async function exportGuest(){const state=await store();const photos=await Promise.all(state.data.photos.map(async p=>{const blob=state.files[p.id];const bytes=blob?new Uint8Array(await blob.arrayBuffer()):null;let binary='';if(bytes)for(const byte of bytes)binary+=String.fromCharCode(byte);return {...p,base64:bytes?btoa(binary):null};}));return {format:'travel-memory-guest-v1',exported_at:new Date().toISOString(),...state.data,photos};}
 
 export async function importGuest(email:string) {

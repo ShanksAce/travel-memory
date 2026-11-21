@@ -133,3 +133,19 @@ Production workflow 會自動執行 remote migration。
 - 不要在未備份情況下 drop production table。
 - 不要 force push 來處理 deployment 問題。
 - 不要把 production D1 當本機測試 DB 使用。
+
+## 帳號復原與 Google 登入
+
+在 Cloudflare Worker 設定以下環境變數。正式站的 APP_ORIGIN 為 https://travel-memory.andy950721.workers.dev（不加結尾斜線）。
+
+| 變數 | 用途 |
+|---|---|
+| APP_ORIGIN | 固定站點來源 |
+| GOOGLE_CLIENT_ID | Google OAuth 網頁應用程式用戶端 ID |
+| GOOGLE_CLIENT_SECRET | Google OAuth 用戶端密鑰，設為 Worker Secret |
+| RESEND_API_KEY | Resend 寄信金鑰，設為 Worker Secret |
+| RECOVERY_FROM_EMAIL | Resend 已驗證的寄件地址 |
+
+Google OAuth 的授權重新導向 URI 為 APP_ORIGIN 加上 /api/auth/google/callback。本機測試使用忽略提交的 .dev.vars。資料庫尚未有擁有者時，可使用已驗證的 Gmail 直接註冊。已有擁有者時，首次使用相同 Gmail 登入會綁定 Google 身分。重設密碼連結 30 分鐘失效、限用一次。
+
+新程式碼上線前須先套用 0005_account_backup_photo_location.sql。帳號復原、OAuth 與寄信設定仍須各做一次實際端到端驗證。

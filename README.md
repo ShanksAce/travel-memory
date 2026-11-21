@@ -102,10 +102,12 @@ React／TypeScript、Vinext App Router、Cloudflare Workers、D1、R2、Drizzle 
 - `wrangler.jsonc`：Cloudflare bindings
 
 ## 文件
+- [專案原始規格與目前進度](docs/PROJECT_CONTEXT.md)
 - [實作狀態](IMPLEMENTATION_STATUS.md)
 - [更新紀錄](CHANGELOG.md)
 - [專題報告](docs/專題報告.md)
 - [展示流程](docs/展示流程.md)
+- [發表材料、架構與 ER 圖](docs/發表材料.md)
 - [口試說明](docs/口試說明.md)
 - [測試紀錄](docs/test-results.json)
 - [資料與授權](docs/資料與授權.md)
