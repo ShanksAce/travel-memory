@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, type FormEvent } from 'react';
-import { Compass, Globe2, Plane, MapPin, Camera, BookOpen, Plus, ArrowUpRight, ArrowLeft, CalendarDays, ChevronRight, Check, CheckCircle2, Trash2, Pencil, X, Download, Search, Heart, LoaderCircle, ListChecks, LogOut, Upload, ArrowRight } from 'lucide-react';
+import { Compass, Plane, MapPin, Camera, BookOpen, Plus, ArrowUpRight, ArrowLeft, CalendarDays, ChevronRight, Check, CheckCircle2, Trash2, Pencil, X, Download, Search, Heart, LoaderCircle, ListChecks, LogOut, Settings2, Upload, ArrowRight } from 'lucide-react';
 import WorldMap from './world-map';
 import WorldGlobe from './world-globe';
 import TripReplay from './trip-replay';
@@ -27,7 +27,12 @@ type Modal = {
     lng?: number;
 } | null;
 const moods: Record<string, string> = { '開心': '☀️', '感動': '💛', '平靜': '🍃', '疲憊': '🌙', '驚喜': '✨' };
-const navs = [{ id: 'world', name: '我的世界', icon: Globe2 }, { id: 'trips', name: '我的旅行', icon: Plane }, { id: 'photos', name: '旅行相簿', icon: Camera }, { id: 'diaries', name: '心情日記', icon: BookOpen }] as const;
+const navs = [
+    { id: 'world', name: '我的世界' },
+    { id: 'trips', name: '我的旅行' },
+    { id: 'photos', name: '旅行相簿' },
+    { id: 'diaries', name: '心情日記' },
+] as const;
 async function request(url: string, init?: RequestInit) { const r = await fetch(url, init); const d: any = await r.json(); if (!r.ok)
     throw Error(d.error || '操作失敗，請稍後重試。'); return d; }
 export default function TravelApp({ user, showTokyoDemo = false }: {
@@ -93,8 +98,8 @@ export default function TravelApp({ user, showTokyoDemo = false }: {
     catch (e) {
         console.info('Optional browser tool unavailable', e);
     } }; void register(); return () => controller.abort(); }, [user]);
-    function navigate(v: View) { setView(v); setSelected(null); setSearch(''); setFilter('全部'); }
-    function openTrip(id: string, tab: 'plan'|'photos'|'diaries' = 'plan') { setSelected(id); setDetailTab(tab); setPlanDate(''); setPinItem(null); setFocusedPlace(null); setView('trips'); setSearch(''); setError(''); }
+    function navigate(v: View) { setView(v); setSelected(null); setSearch(''); setFilter('全部'); window.scrollTo(0, 0); }
+    function openTrip(id: string, tab: 'plan'|'photos'|'diaries' = 'plan') { setSelected(id); setDetailTab(tab); setPlanDate(''); setPinItem(null); setFocusedPlace(null); setView('trips'); setSearch(''); setError(''); window.scrollTo(0, 0); }
     function requireLogin() { return true; }
     function create(entity: Entity, tripId = selected || data.trips[0]?.id, extra: Partial<NonNullable<Modal>> = {}) { if (!requireLogin())
         return; if (entity !== 'trip' && !tripId) {
@@ -222,7 +227,7 @@ export default function TravelApp({ user, showTokyoDemo = false }: {
     const photoGroups = Object.groupBy(filteredPhotos.sort((a, b) => b.date.localeCompare(a.date)), p => group === 'city' ? p.city : group === 'region' ? [p.country,p.region].filter(Boolean).join(' · ') || '地區未設定' : p.date);
     const visibleDiaries = data.diaries.filter(d => (!trip || d.trip_id === trip.id) && (d.title + d.body).includes(search)).sort((a, b) => b.date.localeCompare(a.date));
     const tripTasks = data.tasks.filter(t => t.trip_id === (trip?.id || next?.id));
-    function photoGallery() { return <><div className="toolbar"><div className="segmented"><button className={group === 'date' ? 'on' : ''} onClick={() => setGroup('date')}>依日期</button><button className={group === 'city' ? 'on' : ''} onClick={() => setGroup('city')}>依城市</button><button className={group === 'region' ? 'on' : ''} onClick={() => setGroup('region')}>依地區</button></div>{!trip && <select aria-label="相簿旅行" value={albumTrip} onChange={e => setAlbumTrip(e.target.value)}><option value="">所有旅行</option>{data.trips.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}</select>}<button className={reviewOnly ? "button primary" : "button"} aria-pressed={reviewOnly} onClick={() => setReviewOnly(!reviewOnly)}>待確認照片 {tripPhotos.filter(p => photoNeedsReview(p, data.trips.find(t => t.id === p.trip_id))).length}</button><button className="button primary" disabled={busy} onClick={() => uploadClick()}><Upload size={16}/>上傳照片</button></div><label className="photo-lookup"><input type="checkbox" checked={lookupRegion} onChange={e=>setLookupRegion(e.target.checked)}/> 自動查國家與地區（上傳時將約略 GPS 座標送往 Photon）</label><p className="helper">待確認包含缺少拍攝日期、缺少 GPS、地點未辨識或日期超出旅行範圍的照片；修正後仍會保留原始資訊提示。每張上限 12 MB，支援 JPEG／PNG／WebP。自動讀取拍攝日期與 GPS；缺少資訊時使用旅行日期與城市，可隨時修正。{!trip && !albumTrip && data.trips.length > 0 && ' 上傳到：' + data.trips[0].title}</p>{Object.entries(photoGroups).map(([label, items]) => <section key={label}><div className="section-heading"><h3>{label}</h3><span className="muted">{items?.length} 張照片</span></div><div className="photo-grid">{items?.map(p => <button key={p.id} className="photo-card" onClick={() => setPhoto(p)}><img src={(p as GuestPhoto).local_url || '/api/photos/' + p.id} alt={p.caption || p.filename} loading="lazy"/><div><span>{p.city}</span><small>{p.date}</small></div></button>)}</div></section>)}{!filteredPhotos.length && <Empty icon={Camera} title="把旅行的瞬間，留在這裡" text="選擇旅行並上傳照片，系統會依日期與城市整理相簿。" action="上傳第一張照片" onClick={() => uploadClick()}/>}</>; }
+    function photoGallery() { return <><div className="toolbar"><div className="segmented"><button className={group === 'date' ? 'on' : ''} onClick={() => setGroup('date')}>依日期</button><button className={group === 'city' ? 'on' : ''} onClick={() => setGroup('city')}>依城市</button><button className={group === 'region' ? 'on' : ''} onClick={() => setGroup('region')}>依地區</button></div>{!trip && <select aria-label="相簿旅行" value={albumTrip} onChange={e => setAlbumTrip(e.target.value)}><option value="">所有旅行</option>{data.trips.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}</select>}<button className={reviewOnly ? "button primary" : "button"} aria-pressed={reviewOnly} onClick={() => setReviewOnly(!reviewOnly)}>待確認照片 {tripPhotos.filter(p => photoNeedsReview(p, data.trips.find(t => t.id === p.trip_id))).length}</button><button className="button primary" disabled={busy} onClick={() => uploadClick()}><Upload size={16}/>上傳照片</button></div><label className="photo-lookup"><input type="checkbox" checked={lookupRegion} onChange={e=>setLookupRegion(e.target.checked)}/> 自動查國家與地區（上傳時將約略 GPS 座標送往 Photon）</label><p className="helper">待確認包含缺少拍攝日期、缺少 GPS、地點未辨識或日期超出旅行範圍的照片；修正後仍會保留原始資訊提示。每張上限 12 MB，支援 JPEG／PNG／WebP。自動讀取拍攝日期與 GPS；缺少資訊時使用旅行日期與城市，可隨時修正。{!trip && !albumTrip && data.trips.length > 0 && ' 上傳到：' + data.trips[0].title}</p>{Object.entries(photoGroups).map(([label, items]) => <section key={label}><div className="section-heading"><h3>{label}</h3><span className="muted">{items?.length} 張照片</span></div><div className="photo-grid">{items?.map(p => <button key={p.id} className="photo-card" onClick={() => setPhoto(p)}><img src={(p as GuestPhoto).local_url || '/api/photos/' + p.id} alt={p.caption || p.filename} loading="lazy"/><div className="photo-caption"><span>{p.caption || p.city}</span><small>{p.caption ? p.city + " · " : ""}{p.date}</small></div></button>)}</div></section>)}{!filteredPhotos.length && <Empty icon={Camera} title="把旅行的瞬間，留在這裡" text="選擇旅行並上傳照片，系統會依日期與城市整理相簿。" action="上傳第一張照片" onClick={() => uploadClick()}/>}</>; }
     const planDays = trip ? timelineDays(data, trip).filter(day => !day.outside) : [];
     const activeDay = planDays.find(day => day.date === planDate) || planDays.find(day => day.date === clock) || planDays[0];
     const route = activeDay?.itinerary.map((item): Place | null => {
@@ -239,16 +244,145 @@ export default function TravelApp({ user, showTokyoDemo = false }: {
     const routePoints = route.filter((point): point is Place => point !== null);
     const numbers = Object.fromEntries(route.flatMap((point,i) => point ? [[point.id,i+1]] : []));
     function diaryList() { return <><div className="toolbar"><p>有些風景，值得用文字再走一次。</p><button className="button primary" onClick={() => create('diary')}><Plus size={16}/>寫一篇日記</button></div><div className="diary-grid">{visibleDiaries.map(d => <article className="diary-card" key={d.id}><div className="diary-meta"><span>{moods[d.mood]} {d.mood}</span><time>{d.date}</time></div><h3>{d.title}</h3><p className="diary-body">{d.body}</p><footer><button className="text-button" onClick={() => openTrip(d.trip_id)}><MapPin size={14}/>{data.trips.find(t => t.id === d.trip_id)?.title}</button><Actions onEdit={() => create('diary', d.trip_id, { record: d })} onDelete={() => setPendingDelete({ entity: 'diary', record: d })}/></footer></article>)}</div>{!visibleDiaries.length && <Empty icon={BookOpen} title="今天的心情是什麼顏色？" text="記下途中遇見的人、風景，或一個讓你微笑的瞬間。" action="開始寫日記" onClick={() => create('diary')}/>}</>; }
-    function tripCards(items: Trip[]) { return <div className="trip-grid">{items.map((t, i) => { const pic = data.photos.find(p => p.trip_id === t.id); return <button className="trip-card" key={t.id} onClick={() => openTrip(t.id)}><div className={'trip-cover cover-' + (i % 3)}>{pic ? <img src={(pic as GuestPhoto).local_url || '/api/photos/' + pic.id} alt={t.title}/> : t.country === '日本' ? <img src={cover} alt="東京新宿天際線與富士山" referrerPolicy="no-referrer"/> : <div className="destination-type"><span>{t.country}</span><strong>{t.city}</strong><Compass size={96} strokeWidth={.5}/></div>}<span className={'status ' + (status(t, clock) === '即將出發' ? 'future' : '')}>{status(t, clock)}</span></div><div className="trip-info"><div><h3>{t.title}</h3><ArrowUpRight size={20}/></div><p><MapPin size={14}/>{t.country}・{t.city}</p><footer><span>{t.start_date.replaceAll('-', '.')} — {t.end_date.slice(5).replace('-', '.')}</span><span>{daysBetween(t.start_date, t.end_date) + 1} 天</span></footer></div></button>; })}<button className="new-trip-card" onClick={() => create('trip')}><span><Plus size={25}/></span><h3>下一段故事</h3><p>從一個想去的地方開始</p></button></div>; }
-    return <div className="shell"><aside className="sidebar"><a className="brand" href="/"><Compass size={32}/><span>行旅錄<small>記所行，藏所感</small></span></a><nav>{navs.map(n => <button key={n.id} className={view === n.id ? 'active' : ''} onClick={() => navigate(n.id)}><n.icon />{n.name}</button>)}</nav><div className="side-note"><p>把走過的路，<br />變成值得收藏的故事。</p><div className="side-divider"/><span className="mini-label">MY TRAVEL JOURNAL</span><p>過去的回憶，未來的期待。</p></div>{user ? <div className="account"><a className="account-profile" href="/settings" aria-label="開啟設定"><Avatar name={user.name}/><span><strong>{user.name}</strong><small>我的私人手帳</small></span></a><a href="/signout-with-chatgpt?return_to=/" target="_top" aria-label="登出"><LogOut size={17}/></a></div> : <a className="button primary" href="/signin-with-chatgpt?return_to=/" target="_top">登入我的手帳</a>}</aside><main className="main">{user && guestCount>0 && <div className="guest-banner"><span>此瀏覽器有 {guestCount} 趟訪客旅行。</span><button className="button" disabled={busy} onClick={async()=>{setBusy(true);setError('');try {const count=await importGuest(user.email);setGuestCount(0);await load();setMessage(count+' 趟訪客旅行已匯入帳號。');}catch(e){setError((e as Error).message);}finally{setBusy(false);}}}>匯入我的帳號</button></div>}{!user && <div className="guest-banner"><span>訪客模式 · 資料只保存在此瀏覽器，清除網站資料會移除紀錄。</span><button className="text-button" onClick={()=>void exportData()}>匯出備份（含照片）</button><a className="text-button" href="/signin">登入帳號</a></div>}<header className="topbar"><span>我的旅行空間{trip && ' / ' + trip.title}</span><div className="top-actions">{user && <a className="mobile-account-profile" href="/settings" aria-label="開啟設定"><Avatar name={user.name}/><span>{user.name}</span></a>}{user && <a className="icon-button mobile-signout" href="/signout-with-chatgpt?return_to=/" target="_top" aria-label="登出"><LogOut size={17}/></a>}<a className="icon-button" href="/settings" aria-label="設定" title="設定"><ListChecks size={18}/></a><button className="button primary" onClick={() => create('trip')}><Plus size={18}/>建立旅行</button></div></header>
-    {error && !modal && !pendingDelete && <div className="error-banner" role="alert">{error}<button onClick={() => void load()}>重新載入</button></div>}
-        {loading ? <div className="loading"><LoaderCircle className="spin"/>正在打開你的行旅錄…</div> : <>
-        {!trip && <section className="page-heading"><span className="eyebrow">{view === 'world' ? 'YOUR WORLD, YOUR STORIES' : view === 'trips' ? 'COLLECT MOMENTS, NOT THINGS' : view === 'photos' ? 'LITTLE MOMENTS, BIG MEMORIES' : 'WORDS FROM THE ROAD'}</span><h1>{view === 'world' ? '世界很大，慢慢收藏。' : view === 'trips' ? '每趟旅行，都有一段故事。' : view === 'photos' ? '把瞬間，變成永遠。' : '寫給路上的自己。'}</h1><p>{view === 'world' ? '回頭看看走過的路，也期待下一次出發。' : view === 'trips' ? '從第一個計畫，到最後一張照片，都放在這裡。' : view === 'photos' ? '依日期和城市，翻閱那些值得記住的風景。' : '不只記錄去哪裡，也記得當時的心情。'}</p></section>}
-        {view === 'world' && !trip && <><div className="stats">{[{ n: summary.countries, l: '去過的國家／地區', i: Globe2 }, { n: summary.cities, l: '留下足跡的城市', i: MapPin }, { n: summary.days, l: '已走過的旅行天數', i: CalendarDays }, { n: summary.photos, l: '收藏的旅行照片', i: Camera }].map(s => <div key={s.l}><s.i size={22}/><div><strong>{s.n}</strong><span>{s.l}</span></div></div>)}</div><div className={next ? "dashboard-grid" : "dashboard-grid dashboard-grid-solo"}><section className="panel map-panel"><div className="panel-head"><h2>我的世界足跡</h2><div className="segmented world-map-switch" role="group" aria-label="世界地圖顯示方式"><button type="button" aria-pressed={worldView==='2d'} className={worldView==='2d'?'on':''} onClick={()=>setWorldView('2d')}>2D</button><button type="button" aria-pressed={worldView==='3d'} className={worldView==='3d'?'on':''} onClick={()=>setWorldView('3d')}>3D</button></div></div>{worldView==='3d'?<WorldGlobe places={visitedCities.filter(p => p.date <= clock)} onSelect={openTrip}/>:<WorldMap places={visitedCities.filter(p => p.date <= clock)} onSelect={openTrip}/> }{worldView==='2d' && <div className="map-footer"><MapPin size={15}/><span>拖曳移動地圖，點城市標記可回顧旅行。</span></div>}</section><section className={next ? "countdown" : "countdown countdown-empty"}>{next ? <><Plane className="countdown-plane" size={38} strokeWidth={1}/><span className="eyebrow">THE NEXT CHAPTER</span><span className="countdown-destination">{next.country} · {next.city}</span><h2>{next.title}</h2><div className="count-number">{Math.max(0, daysBetween(clock, next.start_date))}<span>天</span></div><p>{status(next, clock) === '旅行中' ? '正在旅途中，記得收藏今天。' : '距離下一次出發'}</p><div className="countdown-bottom"><span>{next.start_date.replaceAll('-', '.')} 出發</span><button onClick={() => openTrip(next.id)}>繼續規劃 <ArrowRight size={15}/></button></div></> : <><h2>下一站，你想去哪裡？</h2><button className="button light" onClick={() => create('trip')}>開始我的旅途 <ArrowRight size={17}/></button></>}</section></div>{data.places.length > 0 && <div className="place-chips">{data.places.filter(p => p.date <= clock).map(p => <button key={p.id} onClick={() => openTrip(p.trip_id)}><MapPin size={14}/>{p.country} · {p.city}</button>)}</div>}<CountryFootprints data={data} today={clock} openTrip={openTrip}/><div className="section-heading"><h2>我的旅行收藏 <span className="count-badge">{data.trips.length}</span></h2><button className="text-button" onClick={() => navigate('trips')}>全部旅行 <ChevronRight size={16}/></button></div>{data.trips.length ? tripCards(data.trips.slice(0, 2)) : <div className="first-story"><img src={cover} alt="東京新宿天際線與富士山" referrerPolicy="no-referrer"/><div><span className="eyebrow">START YOUR COLLECTION</span><h2>還沒出發，也能先開始期待。</h2><p>建立旅行、安排每天的行程，再把路上的照片與心情收藏起來。</p><div className="row"><button className="button primary" onClick={() => create('trip')}><Plus size={16}/>建立第一趟旅行</button><button className="text-button" onClick={seed} disabled={busy}>載入示範旅行 <ArrowUpRight size={16}/></button></div></div></div>}</>}
+    function tripCards(items: Trip[], showCreate = true) {
+        return <div className={showCreate ? "trip-grid" : "trip-grid recent-trip-grid"}>
+            {items.map(t => {
+                const picture = data.photos.find(p => p.trip_id === t.id);
+                const tripStatus = status(t, clock);
+                return <button className="trip-card" key={t.id} onClick={() => openTrip(t.id)}>
+                    <div className="trip-cover">
+                        {picture ? <img src={(picture as GuestPhoto).local_url || '/api/photos/' + picture.id} alt="" loading="lazy"/>
+                            : t.city === '東京' ? <img src={cover} alt="東京新宿天際線與富士山" loading="lazy" referrerPolicy="no-referrer"/>
+                            : <div className="destination-type" aria-hidden="true"><span>{t.country}</span><strong>{t.city}</strong><Compass size={124} strokeWidth={.6}/></div>}
+                    </div>
+                    <div className="trip-info">
+                        <span className={tripStatus === '即將出發' ? 'status future' : 'status'}>{tripStatus}</span>
+                        <div><h3>{t.title}</h3><ArrowUpRight size={19} aria-hidden="true"/></div>
+                        <p><MapPin size={15} aria-hidden="true"/>{t.country}・{t.city}</p>
+                        <footer><span>{t.start_date.replaceAll('-', '.')} — {t.end_date.slice(5).replace('-', '.')}</span><span>{daysBetween(t.start_date, t.end_date) + 1} 天</span></footer>
+                    </div>
+                </button>;
+            })}
+            {showCreate && <button className="new-trip-card" onClick={() => create('trip')}>
+                <span><Plus size={23} aria-hidden="true"/></span><h3>建立旅行</h3>
+            </button>}
+        </div>;
+    }
+
+    const isWorld = view === 'world' && !trip;
+    const datedVisits = data.places.filter(p => p.date <= clock);
+    const mapPlaces = visitedCities.filter(p => p.date <= clock);
+
+    return <div className="shell">
+        <header className="site-header">
+            <div className="content-frame site-nav">
+                <a className="site-brand" href="/" aria-label="行旅錄首頁"><Compass size={21} strokeWidth={1.8} aria-hidden="true"/>行旅錄</a>
+                <nav className="site-links" aria-label="主要導覽">
+                    {navs.map(n => <button type="button" key={n.id} aria-current={view === n.id ? 'page' : undefined} onClick={() => navigate(n.id)}>{n.name}</button>)}
+                </nav>
+                <div className="site-actions">
+                    {user ? <>
+                        <a className="account-profile" href="/settings" aria-label="開啟設定"><Avatar name={user.name}/><span>{user.name}</span></a>
+                        <a className="icon-button" href="/signout-with-chatgpt?return_to=/" target="_top" aria-label="登出" title="登出"><LogOut size={17}/></a>
+                    </> : <>
+                        <a className="icon-button" href="/settings" aria-label="設定" title="設定"><Settings2 size={17}/></a>
+                        <a className="button" href="/signin-with-chatgpt?return_to=/" target="_top">登入</a>
+                    </>}
+                    <button className="button primary" onClick={() => create('trip')}><Plus size={15} aria-hidden="true"/>建立旅行</button>
+                </div>
+            </div>
+        </header>
+        <main className={isWorld ? 'main world-main' : 'main content-frame'}>
+            {user && guestCount > 0 && <div className="guest-banner">
+                <span>此瀏覽器有 {guestCount} 趟訪客旅行。</span>
+                <button className="text-button" disabled={busy} onClick={async () => {
+                    setBusy(true);
+                    setError('');
+                    try {
+                        const count = await importGuest(user.email);
+                        setGuestCount(0);
+                        await load();
+                        setMessage(count + ' 趟訪客旅行已匯入帳號。');
+                    } catch (e) {
+                        setError((e as Error).message);
+                    } finally {
+                        setBusy(false);
+                    }
+                }}>匯入我的帳號</button>
+            </div>}
+            {!user && <div className="guest-banner">
+                <span><strong>訪客模式</strong> · 紀錄僅儲存在此瀏覽器。</span>
+                <button className="text-button" onClick={() => void exportData()}>匯出備份</button>
+            </div>}
+            {error && !modal && !pendingDelete && <div className="error-banner" role="alert">{error}<button onClick={() => void load()}>重新載入</button></div>}
+            {loading ? <div className="loading"><LoaderCircle className="spin"/>正在打開你的行旅錄…</div> : <>
+                {!isWorld && !trip && <header className="page-heading"><h1>{navs.find(item => item.id === view)?.name}</h1></header>}
+                {isWorld && <>
+                    <section className="content-frame world-hero" aria-labelledby="world-title">
+                        <header className="hero-copy">
+                            <p className="hero-kicker">我的世界足跡</p>
+                            <h1 id="world-title">世界很大，慢慢收藏。</h1>
+                            <p>回頭看看走過的路，也期待下一次出發。</p>
+                        </header>
+                        <div className="segmented world-map-switch" role="group" aria-label="世界地圖顯示方式">
+                            <button type="button" aria-pressed={worldView === '2d'} className={worldView === '2d' ? 'on' : ''} onClick={() => setWorldView('2d')}>2D</button>
+                            <button type="button" aria-pressed={worldView === '3d'} className={worldView === '3d' ? 'on' : ''} onClick={() => setWorldView('3d')}>3D</button>
+                        </div>
+                        <div className={'world-visual world-visual-' + worldView}>
+                            {worldView === '3d' ? <WorldGlobe places={mapPlaces} onSelect={openTrip} presentation="gallery"/>
+                                : <WorldMap places={mapPlaces} onSelect={openTrip}/>}
+                        </div>
+                        {datedVisits.length > 0 && <div className="place-chips" aria-label="到訪足跡">
+                            {datedVisits.map(p => <button key={p.id} onClick={() => openTrip(p.trip_id)}>
+                                <MapPin size={14} aria-hidden="true"/>{p.country} · {p.city}
+                            </button>)}
+                        </div>}
+                        <dl className="world-stats" aria-label="旅行統計">
+                            {[
+                                { value: summary.countries, label: '到訪國家／地區' },
+                                { value: summary.cities, label: '到訪城市' },
+                                { value: summary.days, label: '旅行天數' },
+                                { value: summary.photos, label: '旅行照片' },
+                            ].map(item => <div key={item.label}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}
+                        </dl>
+                    </section>
+
+                    <section className="world-highlights" aria-labelledby="highlights-title">
+                        <div className="content-frame highlights-content">
+                            {next && <div className="next-travel">
+                                <Plane size={21} strokeWidth={1.8} aria-hidden="true"/>
+                                <div>
+                                    <span>{status(next, clock) === '旅行中' ? '旅行中' : '下一趟旅行'}</span>
+                                    <strong>{next.title}</strong>
+                                </div>
+                                <p>{next.city} · {next.start_date.replaceAll('-', '.')} 出發
+                                    {next.start_date > clock && ' · 還有 ' + daysBetween(clock, next.start_date) + ' 天'}
+                                </p>
+                                <button className="button" onClick={() => openTrip(next.id)}>繼續規劃 <ArrowRight size={15}/></button>
+                            </div>}
+                            <div className="section-heading">
+                                <h2 id="highlights-title">我的旅行收藏</h2>
+                                {data.trips.length > 0 && <button className="text-button" onClick={() => navigate('trips')}>全部旅行 <ChevronRight size={16}/></button>}
+                            </div>
+                            {data.trips.length > 0 ? tripCards(data.trips.slice(0, 2), false) : <article className="first-story">
+                                <img src={cover} alt="東京新宿天際線與富士山" loading="lazy" referrerPolicy="no-referrer"/>
+                                <div>
+                                    <h3>從第一趟旅行開始。</h3>
+                                    <p>安排行程，把走過的地方、照片與日記收藏在一起。</p>
+                                    <div className="row">
+                                        <button className="button primary" onClick={() => create('trip')}>建立第一趟旅行</button>
+                                        <button className="text-button" onClick={seed} disabled={busy}>載入東京範本 <ChevronRight size={16}/></button>
+                                    </div>
+                                </div>
+                            </article>}
+                        </div>
+                    </section>
+                    <CountryFootprints data={data} today={clock} openTrip={openTrip}/>
+                </>}
         {view === 'trips' && !trip && <><div className="toolbar"><div className="segmented">{['全部', '即將出發', '旅行中', '回憶收藏'].map(f => <button className={filter === f ? 'on' : ''} key={f} onClick={() => setFilter(f)}>{f}</button>)}</div><SearchBox value={search} set={setSearch} placeholder="搜尋旅行、城市…"/></div>{tripCards(matchingTrips)}{data.trips.length === 0 && <button className="text-button demo-button" disabled={busy} onClick={seed}>載入示範旅行，試試完整流程</button>}</>}
         {view === 'photos' && !trip && <><SearchBox value={search} set={setSearch} placeholder="搜尋城市、日期、照片說明…"/>{photoGallery()}</>}
         {view === 'diaries' && !trip && <><SearchBox value={search} set={setSearch} placeholder="搜尋日記內容…"/>{diaryList()}</>}
-            {trip && <><div className="detail-heading"><button className="text-button" onClick={() => setSelected(null)}><ArrowLeft size={16}/>返回所有旅行</button><div className="detail-title"><div><span className="pill">{status(trip, clock)}</span><h1>{trip.title}</h1><p><MapPin size={16}/>{trip.country} · {trip.city}<span>／</span>{trip.start_date} — {trip.end_date}<span>／</span>{daysBetween(trip.start_date, trip.end_date) + 1} 天</p></div><div className="row"><button className="button" onClick={()=>setReplayOpen(true)}>回放旅程</button><Actions onEdit={() => create('trip', trip.id, { record: trip })} onDelete={() => setPendingDelete({ entity: 'trip', record: trip })}/></div></div>{trip.description && <p className="trip-description">{trip.description}</p>}</div><div className="detail-tabs">{[['timeline', '旅行時間軸', CalendarDays], ['plan', '每日行程', ListChecks], ['places', '旅行足跡', MapPin], ['photos', '旅行相簿', Camera], ['diaries', '心情日記', BookOpen]].map(([id, label, Icon]: any) => <button key={id} className={detailTab === id ? 'active' : ''} onClick={() => { setDetailTab(id); setSearch(''); }}><Icon size={18}/>{label}</button>)}</div>
+            {trip && <><div className="detail-heading"><button className="text-button" onClick={() => navigate('trips')}><ArrowLeft size={16}/>返回所有旅行</button><div className="detail-title"><div><span className="pill">{status(trip, clock)}</span><h1>{trip.title}</h1><p><MapPin size={16}/>{trip.country} · {trip.city}<span>／</span>{trip.start_date} — {trip.end_date}<span>／</span>{daysBetween(trip.start_date, trip.end_date) + 1} 天</p></div><div className="row"><button className="button" onClick={()=>setReplayOpen(true)}>回放旅程</button><Actions onEdit={() => create('trip', trip.id, { record: trip })} onDelete={() => setPendingDelete({ entity: 'trip', record: trip })}/></div></div>{trip.description && <p className="trip-description">{trip.description}</p>}</div><div className="detail-tabs">{[['timeline', '旅行時間軸', CalendarDays], ['plan', '每日行程', ListChecks], ['places', '旅行足跡', MapPin], ['photos', '旅行相簿', Camera], ['diaries', '心情日記', BookOpen]].map(([id, label, Icon]: any) => <button key={id} className={detailTab === id ? 'active' : ''} onClick={() => { setDetailTab(id); setSearch(''); }}><Icon size={18}/>{label}</button>)}</div>
             {detailTab === 'timeline' && <TravelTimeline data={data} trip={trip} onPhoto={setPhoto} onAddDiary={date => create('diary', trip.id, { record: { date } })}/>}
             {detailTab === 'plan' && activeDay && <div className="planner-layout route-planner"><section className="daily-plan">
                 <div className="section-heading"><h2>每日行程</h2><button className="button primary" onClick={() => create('itinerary', trip.id, { record: { date: activeDay.date } })}><Plus size={16}/>新增行程</button></div>
@@ -286,7 +420,7 @@ export default function TravelApp({ user, showTokyoDemo = false }: {
     <dialog ref={dialog} className="form-dialog" onCancel={e => { if (busy)
         e.preventDefault();
     else
-        setModal(null); }}>{modal && <><div className="dialog-header"><div><span className="eyebrow">A NEW PIECE OF YOUR JOURNEY</span><h2>{modal.record?.id ? '編輯' : '新增'}{({ trip: '旅行', place: '旅行足跡', diary: '心情日記', itinerary: '行程', task: '準備項目', photo: '照片資訊' })[modal.entity]}</h2></div><button className="icon-button" aria-label="關閉" disabled={busy} onClick={() => setModal(null)}><X /></button></div><form key={modal.entity + (modal.record?.id || 'new') + String(modal.lat)} onSubmit={save}><Fields modal={modal} trips={data.trips}/>{error && <div className="form-error" role="alert">{error}</div>}<div className="dialog-footer"><button type="button" className="button" disabled={busy} onClick={() => setModal(null)}>取消</button><button className="button primary" disabled={busy}>{busy ? <LoaderCircle size={17} className="spin"/> : <Check size={17}/>}儲存{modal.entity === 'trip' ? '旅行' : '紀錄'}</button></div></form></>}</dialog>
+        setModal(null); }}>{modal && <><div className="dialog-header"><div><h2>{modal.record?.id ? '編輯' : '新增'}{({ trip: '旅行', place: '旅行足跡', diary: '心情日記', itinerary: '行程', task: '準備項目', photo: '照片資訊' })[modal.entity]}</h2></div><button className="icon-button" aria-label="關閉" disabled={busy} onClick={() => setModal(null)}><X /></button></div><form key={modal.entity + (modal.record?.id || 'new') + String(modal.lat)} onSubmit={save}><Fields modal={modal} trips={data.trips}/>{error && <div className="form-error" role="alert">{error}</div>}<div className="dialog-footer"><button type="button" className="button" disabled={busy} onClick={() => setModal(null)}>取消</button><button className="button primary" disabled={busy}>{busy ? <LoaderCircle size={17} className="spin"/> : <Check size={17}/>}儲存{modal.entity === 'trip' ? '旅行' : '紀錄'}</button></div></form></>}</dialog>
     <dialog ref={confirmDialog} className="form-dialog small-dialog" onCancel={() => { if (!busy)
         setPendingDelete(null); }}>{pendingDelete && <><h2>確定刪除{pendingDelete.entity === 'trip' ? '這趟旅行' : '這筆紀錄'}？</h2><p className="confirm-text">{pendingDelete.entity === 'trip' ? '此旅行的照片、日記、行程與足跡也會一併刪除。' : '刪除後無法復原。'}</p>{error && <div className="form-error">{error}</div>}<div className="dialog-footer"><button className="button" disabled={busy} onClick={() => setPendingDelete(null)}>保留</button><button className="button danger" disabled={busy} onClick={remove}>{busy ? '刪除中…' : '確定刪除'}</button></div></>}</dialog>
     <dialog ref={lightbox} className="photo-dialog" onCancel={() => setPhoto(null)}>{photo && <><button className="photo-close icon-button" aria-label="關閉照片" onClick={() => setPhoto(null)}><X /></button><img className="lightbox-img" src={(photo as GuestPhoto).local_url || '/api/photos/' + photo.id} alt={photo.caption || photo.filename}/><div className="photo-detail"><h3>{photo.caption || photo.filename}</h3><p>{photo.date} · {photo.city}</p><p className="helper">{photo.source}</p>{photo.lat !== null && photo.lng !== null && <p className="helper">GPS：{photo.lat.toFixed(5)}, {photo.lng.toFixed(5)}</p>}<div className="row"><a className="button" href={(photo as GuestPhoto).local_url || '/api/photos/' + photo.id} download={photo.filename}><Download size={16}/>原始照片</a><button className="button" onClick={() => { setPhoto(null); create('photo', photo.trip_id, { record: photo }); }}><Pencil size={15}/>修正資訊</button><button className="icon-button" aria-label="刪除照片" onClick={() => { setPhoto(null); setPendingDelete({ entity: 'photo', record: photo }); }}><Trash2 size={17}/></button></div></div></>}</dialog>

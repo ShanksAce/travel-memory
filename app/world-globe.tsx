@@ -23,7 +23,12 @@ for (let lat = -60; lat <= 60; lat += 30)
 for (let lng = -180; lng < 180; lng += 30)
     grid.push(Array.from({ length: 61 }, (_, i) => vector(lng, i * 3 - 90)));
 
-export default function WorldGlobe({ places, onSelect, flightTarget }: { places: Place[]; onSelect: (tripId: string) => void; flightTarget?: {lat:number;lng:number} }) {
+export default function WorldGlobe({ places, onSelect, flightTarget, presentation = 'flight' }: {
+    places: Place[];
+    onSelect: (tripId: string) => void;
+    flightTarget?: {lat:number;lng:number};
+    presentation?: 'flight' | 'gallery';
+}) {
     const canvas = useRef<HTMLCanvasElement>(null);
     const view = useRef(initial);
     const points = useRef<Marker[]>([]);
@@ -54,6 +59,8 @@ export default function WorldGlobe({ places, onSelect, flightTarget }: { places:
         let surfaceFrame: ImageData | undefined;
         let texture: ImageData | undefined;
         let frame = 0;
+        const gallery = presentation === 'gallery';
+        const radiusFraction = gallery ? .46 : .41;
 
         function paintSurface(a: number, b: number, c: number, d: number, w: number, h: number, radius: number, dpr: number) {
             if (!texture || !surfaceContext) return;
@@ -102,16 +109,18 @@ export default function WorldGlobe({ places, onSelect, flightTarget }: { places:
             context.setTransform(dpr, 0, 0, dpr, 0, 0);
             context.clearRect(0, 0, w, h);
             const { lng, lat, zoom } = view.current;
-            const cx = w / 2, cy = h / 2, radius = Math.min(w, h) * .41 * zoom;
+            const cx = w / 2, cy = h / 2, radius = Math.min(w, h) * radiusFraction * zoom;
             const a = Math.cos(lng*radians), b = Math.sin(lng*radians);
             const c = Math.cos(lat*radians), d = Math.sin(lat*radians);
             function project([x,y,z]: Vector) {
                 const forward = x*b + z*a;
                 return { x: cx + radius*(x*a-z*b), y: cy - radius*(y*c-forward*d), depth: y*d+forward*c };
             }
-            const halo = context.createRadialGradient(cx,cy,radius*.92,cx,cy,radius*1.17);
-            halo.addColorStop(0,'#39eaff00'); halo.addColorStop(.34,'#4198e857'); halo.addColorStop(1,'#39eaff00');
-            context.fillStyle = halo; context.fillRect(0,0,w,h);
+            if (!gallery) {
+                const halo = context.createRadialGradient(cx,cy,radius*.92,cx,cy,radius*1.17);
+                halo.addColorStop(0,'#39eaff00'); halo.addColorStop(.34,'#4198e857'); halo.addColorStop(1,'#39eaff00');
+                context.fillStyle = halo; context.fillRect(0,0,w,h);
+            }
             const ocean = context.createRadialGradient(cx-radius*.35,cy-radius*.4,0,cx,cy,radius*1.16);
             ocean.addColorStop(0,'#16465b'); ocean.addColorStop(.65,'#0a2339'); ocean.addColorStop(1,'#081322');
             context.beginPath(); context.arc(cx,cy,radius,0,2*Math.PI);
@@ -148,7 +157,9 @@ export default function WorldGlobe({ places, onSelect, flightTarget }: { places:
             }
             context.restore();
             context.beginPath(); context.arc(cx,cy,radius,0,2*Math.PI);
-            context.strokeStyle = '#89cbfab0'; context.lineWidth = 1.25; context.stroke();
+            context.strokeStyle = gallery ? '#7899b673' : '#89cbfab0';
+            context.lineWidth = gallery ? .8 : 1.25;
+            context.stroke();
             visible.current = [];
             const labelBounds: {left:number; right:number; y:number}[] = [];
             context.font = '600 12px system-ui, sans-serif';
@@ -178,6 +189,12 @@ export default function WorldGlobe({ places, onSelect, flightTarget }: { places:
         observer.observe(node);
         function wheel(event: WheelEvent) {
             if (!event.deltaY || event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+            if (gallery) {
+                const box = node!.getBoundingClientRect();
+                const radius = Math.min(box.width, box.height) * radiusFraction * view.current.zoom;
+                const distance = Math.hypot(event.clientX - box.left - box.width / 2, event.clientY - box.top - box.height / 2);
+                if (distance > radius) return;
+            }
             event.preventDefault();
             const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? node!.clientHeight : 1;
             const delta = Math.max(-140, Math.min(140, event.deltaY * unit));
@@ -207,7 +224,7 @@ export default function WorldGlobe({ places, onSelect, flightTarget }: { places:
         }).catch(() => { if (!controller.signal.aborted && !texture) setFailed(true); });
         schedule();
         return () => { node.removeEventListener('wheel', wheel); observer.disconnect(); controller.abort(); image.onload = image.onerror = null; cancelAnimationFrame(frame); repaint.current = () => {}; };
-    }, [move]);
+    }, [move, presentation]);
 
     const targetLng = flightTarget?.lng, targetLat = flightTarget?.lat;
     useEffect(() => {
@@ -230,7 +247,7 @@ export default function WorldGlobe({ places, onSelect, flightTarget }: { places:
         return () => { flying.current=false; cancelAnimationFrame(frame); };
     }, [targetLng,targetLat]);
 
-    return <div className="world-globe">
+    return <div className={presentation === 'gallery' ? "world-globe world-globe-gallery" : "world-globe"}>
         <canvas ref={canvas} className={dragging?'is-dragging':undefined} tabIndex={0}
             aria-label="互動三維地球。方向鍵旋轉，加號與減號縮放。"
             onKeyDown={e=>{

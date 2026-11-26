@@ -1,26 +1,114 @@
-:root { --background:#f6f3ed; --card:#fffdf9; --foreground:#302923; --primary:#883f2b; --primary-foreground:#fffdf9; --accent:#a85c41; --muted-foreground:#685a50; --muted:#eee7dc; --border:#dcd2c3; --hero:#49312b; --hero-accent:#f4ded0; }
-html[data-theme='forest'] { --background:#f0f3ec; --card:#fcfdf9; --foreground:#243429; --primary:#325d48; --primary-foreground:#ffffff; --accent:#8b6338; --muted-foreground:#526257; --muted:#e2eadf; --border:#cedbd0; --hero:#234538; --hero-accent:#ebd5b6; }
-html[data-theme='ocean'] { --background:#eef3f6; --card:#fcfdff; --foreground:#223448; --primary:#245a7a; --primary-foreground:#ffffff; --accent:#9b593f; --muted-foreground:#526477; --muted:#e0eaf0; --border:#cfdae4; --hero:#243e58; --hero-accent:#f4d2be; }
-html[data-theme='night'] { color-scheme:dark; --background:#171b26; --card:#222837; --foreground:#edf0f7; --primary:#c1b8ef; --primary-foreground:#211b33; --accent:#e5aa82; --muted-foreground:#b5bdd0; --muted:#2e3649; --border:#444e65; --hero:#302748; --hero-accent:#f4d5be; }
-/* Shared color roles keep each theme consistent across screens. */
-html :is(.sidebar,.panel,.day-card,.diary-card,.place-row,.trip-card,.photo-card,.first-story,.stats,dialog,.button:not(.primary,.danger),.field input,.field select,.field textarea,.search-box,.toolbar select,.segmented button.on) { background:var(--card); color:var(--foreground); border-color:var(--border); }
-html :is(.panel-head,.map-footer,.day-header,.segmented,.new-trip-card,.empty-state,.budget-card,.avatar,.pill,.count-badge,.category,.status,.status.future) { background:var(--muted); color:var(--foreground); border-color:var(--border); }
-html :is(.brand,.text-button,.detail-tabs button.active,.stats strong,.segmented button.on) { color:var(--primary); }
-html :is(.page-heading h1,.detail-title h1,.settings-page h1) { color:var(--foreground); }
-html :is(.sidebar nav button,.detail-tabs button,.topbar,.muted,.helper,.eyebrow,.brand small,.mini-label,.app-footer,.trip-info p,.trip-info footer,.icon-button,.field,.stats span,.diary-meta,.diary-meta>span) { color:var(--muted-foreground); }
-html :is(.sidebar nav .active,.stats svg) { background:var(--muted); color:var(--primary); }
-.sidebar nav .active { box-shadow:inset 3px 0 var(--accent); }
-html .button.primary { background:var(--primary); color:var(--primary-foreground); border-color:var(--primary); }
-html :is(.countdown,.toast) { background:var(--hero); color:#fffdf9; border-color:color-mix(in srgb,var(--hero-accent) 25%,var(--hero)); }
-html .countdown :is(p,.eyebrow,.countdown-plane,.countdown-destination,.count-number,.countdown-bottom) { color:var(--hero-accent); }
-html .page-heading::after,html .memory-day::before { background:var(--accent); }
-html :is(.memory-day,.diary-card,.memory-diary,.detail-tabs button.active) { border-color:var(--accent); }
-html :is(.trip-info,.trip-cover,.topbar,.app-footer,.side-note) { border-color:var(--border); }
-html .destination-type { background:var(--muted); color:var(--foreground); }
-html :focus-visible { outline-color:var(--accent); }
-@media(hover:hover) {
-  html :is(.sidebar nav button,.segmented button,.detail-tabs button,.icon-button):hover:not(:disabled,.photo-close) { background:var(--muted); color:var(--primary); }
-}
-html[data-theme='night'] .photo-close { background:#171b26dd; color:#fff; }
+:root {
+    color-scheme: light;
 
-html .detail-tabs button.active { color:var(--primary); }
+    --background: #ffffff;
+    --card: #ffffff;
+    --muted: #f5f5f7;
+    --paper: #fafafc;
+    --control: #e6e6e8;
+    --border: #d6d6d6;
+    --input: #86868b;
+    --foreground: #1d1d1f;
+    --muted-foreground: #707070;
+    --link: #0066cc;
+    --primary: #0071e3;
+    --primary-foreground: #ffffff;
+    --status: #b64400;
+    --ring: var(--link);
+    --destructive: #b4232a;
+
+    --font-display: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    --font-text: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    --radius: 10px;
+    --radius-card: 28px;
+    --radius-pill: 9999px;
+    --section-space: clamp(56px, 7vw, 90px);
+    --content-max: 1440px;
+    --page-gutter: clamp(20px, 4.5vw, 72px);
+}
+
+html[data-theme='fieldnotes'] {
+    --background: #faf2ec;
+    --card: #fffaf5;
+    --muted: #f1e6d9;
+    --paper: #f7eee3;
+    --control: #e6d8c8;
+    --border: #dbccba;
+    --input: #887967;
+    --foreground: #29251f;
+    --muted-foreground: #66594b;
+    --link: #31563e;
+    --primary: #31563e;
+    --primary-foreground: #fffaf5;
+    --status: #905124;
+
+    --font-display: "Noto Serif TC", "Source Han Serif TC", "Songti TC", "PMingLiU", serif;
+    --font-text: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+    --radius: 10px;
+    --radius-card: 20px;
+    --section-space: clamp(48px, 6vw, 78px);
+    --content-max: 1240px;
+}
+
+html[data-theme='journal'] {
+    --background: #f6f3ed;
+    --card: #fffdf9;
+    --muted: #eee7dc;
+    --paper: #faf6ef;
+    --control: #e8dcd0;
+    --border: #dcd2c3;
+    --input: #887763;
+    --foreground: #302923;
+    --muted-foreground: #685a50;
+    --link: #883f2b;
+    --primary: #883f2b;
+    --status: #974713;
+}
+
+html[data-theme='forest'] {
+    --background: #f7f9f5;
+    --card: #fcfdf9;
+    --muted: #eaf0e7;
+    --paper: #f0f4ed;
+    --control: #dce7da;
+    --border: #cedbd0;
+    --input: #6a7d6d;
+    --foreground: #243429;
+    --muted-foreground: #526257;
+    --link: #315e49;
+    --primary: #325d48;
+    --status: #835222;
+}
+
+html[data-theme='ocean'] {
+    --background: #f6f9fb;
+    --card: #fcfdff;
+    --muted: #e8f0f6;
+    --paper: #eef3f7;
+    --control: #dde8ef;
+    --border: #cfdae4;
+    --input: #6b8194;
+    --foreground: #223448;
+    --muted-foreground: #526477;
+    --link: #245a7a;
+    --primary: #245a7a;
+    --status: #925032;
+}
+
+html[data-theme='night'] {
+    color-scheme: dark;
+    --background: #171b26;
+    --card: #222837;
+    --muted: #262d3d;
+    --paper: #1d2230;
+    --control: #333b4d;
+    --border: #444e65;
+    --input: #8995ad;
+    --foreground: #edf0f7;
+    --muted-foreground: #b5bdd0;
+    --link: #cdc5ff;
+    --primary: #c1b8ef;
+    --primary-foreground: #211b33;
+    --status: #f4c095;
+    --destructive: #a92131;
+}

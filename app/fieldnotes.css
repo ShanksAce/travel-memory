@@ -1,0 +1,142 @@
+html[data-theme='fieldnotes'] .site-header {
+    background: var(--background);
+}
+
+html[data-theme='fieldnotes'] .site-brand {
+    color: var(--link);
+}
+
+html[data-theme='fieldnotes'] .site-links button[aria-current='page'] {
+    color: var(--link);
+}
+
+html[data-theme='fieldnotes'] .world-hero {
+    padding-top: clamp(32px, 4.5vw, 64px);
+}
+
+html[data-theme='fieldnotes'] .hero-copy {
+    gap: 14px;
+}
+
+html[data-theme='fieldnotes'] .hero-copy .hero-kicker {
+    color: var(--link);
+    font: 600 14px/1.4 var(--font-text);
+    letter-spacing: .12em;
+}
+
+html[data-theme='fieldnotes'] .hero-copy h1 {
+    font-size: clamp(37px, 5.2vw, 70px);
+    line-height: 1.17;
+    font-weight: 500;
+    letter-spacing: .015em;
+}
+
+html[data-theme='fieldnotes'] .world-map-switch {
+    border: 1px solid var(--control);
+    margin-top: 20px;
+}
+
+html[data-theme='fieldnotes'] .world-visual {
+    max-width: 1100px;
+    margin-top: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+}
+
+html[data-theme='fieldnotes'] .world-visual-3d {
+    background-color: var(--paper);
+    background-image:
+        linear-gradient(to right, #866a4917 1px, transparent 1px),
+        linear-gradient(to bottom, #866a4917 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: center;
+}
+
+html[data-theme='fieldnotes'] .world-visual .world-map,
+html[data-theme='fieldnotes'] .world-globe-gallery canvas {
+    height: clamp(280px, 39vw, 468px);
+}
+
+html[data-theme='fieldnotes'] .world-globe-gallery .flight-map-credit {
+    left: 14px;
+    background: var(--card);
+}
+
+html[data-theme='fieldnotes'] .world-globe-gallery .globe-controls {
+    right: 12px;
+    bottom: 12px;
+    border: 1px solid var(--border);
+    background: var(--card);
+}
+
+html[data-theme='fieldnotes'] .world-globe-gallery .globe-controls button:hover {
+    background: var(--muted);
+}
+
+html[data-theme='fieldnotes'] .world-stats dd {
+    color: var(--link);
+    font-weight: 500;
+}
+
+html[data-theme='fieldnotes'] .world-highlights .trip-card {
+    background: var(--card);
+    border-color: var(--border);
+}
+
+html[data-theme='fieldnotes'] .world-highlights .trip-cover {
+    aspect-ratio: 3 / 2;
+}
+
+html[data-theme='fieldnotes'] .first-story {
+    border: 1px solid var(--border);
+}
+
+html[data-theme='fieldnotes'] .trip-info .status {
+    font-family: var(--font-text);
+    font-size: 11px;
+    letter-spacing: .08em;
+}
+
+html[data-theme='fieldnotes'] .trip-info h3,
+html[data-theme='fieldnotes'] .first-story h3,
+html[data-theme='fieldnotes'] .diary-card h3 {
+    font-weight: 500;
+}
+
+html[data-theme='fieldnotes'] .photo-card > img {
+    height: auto;
+    aspect-ratio: 4 / 3;
+}
+
+html[data-theme='fieldnotes'] .photo-card > .photo-caption {
+    display: grid;
+    gap: 3px;
+    justify-content: start;
+    padding: 12px 15px 15px;
+    overflow-wrap: anywhere;
+}
+
+html[data-theme='fieldnotes'] .diary-card {
+    padding: clamp(20px, 3vw, 32px);
+}
+
+html[data-theme='fieldnotes'] .diary-body {
+    max-width: 36em;
+    color: var(--foreground);
+    line-height: 1.9;
+}
+
+@media (max-width: 520px) {
+    html[data-theme='fieldnotes'] .world-globe-gallery {
+        padding: 0 8px 8px;
+    }
+
+    html[data-theme='fieldnotes'] .world-visual-3d {
+        background-size: 28px 28px;
+    }
+
+    html[data-theme='fieldnotes'] .photo-card > .photo-caption {
+        padding: 9px 11px 12px;
+    }
+}

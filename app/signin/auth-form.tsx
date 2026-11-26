@@ -2,7 +2,7 @@
 import PasswordField from '../password-field';
 
 import { useState, type FormEvent } from 'react';
-import { Compass, LoaderCircle } from 'lucide-react';
+import { ArrowRight, Compass, LoaderCircle } from 'lucide-react';
 import styles from './auth-form.module.css';
 
 type Mode = 'login' | 'register';
@@ -35,15 +35,14 @@ export default function AuthForm({ returnTo, google, notice }: { returnTo: strin
 
     return <main className={styles.page}>
         <section className={styles.card}>
-            <a className={styles.brand} href="/"><Compass size={34}/><span>行旅錄<small>記所行，藏所感</small></span></a>
-            <div className={styles.copy}>
-                <span className={styles.eyebrow}>YOUR JOURNEY, YOUR SPACE</span>
-                <h1>{mode === 'login' ? '歡迎回來。' : '建立你的行旅錄。'}</h1>
-                <p>{mode === 'login' ? '登入後繼續收藏旅行、照片與心情。' : '帳號資料只用於登入與區分你的私人旅行內容。'}</p>
-            </div>
-            <div className={styles.tabs} role="tablist" aria-label="登入或註冊">
-                <button type="button" className={mode === 'login' ? styles.active : ''} onClick={() => { setMode('login'); setError(''); }}>登入</button>
-                <button type="button" className={mode === 'register' ? styles.active : ''} onClick={() => { setMode('register'); setError(''); }}>註冊</button>
+            <header className={styles.copy}>
+                <a className={styles.brand} href="/" aria-label="行旅錄首頁"><Compass size={22} aria-hidden="true"/>行旅錄</a>
+                <h1>{mode === 'login' ? '登入行旅錄' : '建立行旅錄帳號'}</h1>
+                <p>{mode === 'login' ? '登入後查看你的私人旅行手帳。' : '建立帳號後，可在其他裝置查看你的旅行。'}</p>
+            </header>
+            <div className={styles.tabs} role="group" aria-label="登入或註冊">
+                <button type="button" aria-pressed={mode === 'login'} className={mode === 'login' ? styles.active : ''} onClick={() => { setMode('login'); setError(''); }}>登入</button>
+                <button type="button" aria-pressed={mode === 'register'} className={mode === 'register' ? styles.active : ''} onClick={() => { setMode('register'); setError(''); }}>註冊</button>
             </div>
             <form className={styles.form} onSubmit={submit}>
                 {mode === 'register' && <label>顯示名稱<input name="name" autoComplete="name" maxLength={80} required placeholder="例如：旅行者"/></label>}
@@ -52,7 +51,14 @@ export default function AuthForm({ returnTo, google, notice }: { returnTo: strin
                 {error && <div className={styles.error} role="alert">{error}</div>}
                 <button className={`button primary ${styles.submit}`} disabled={busy}>{busy && <LoaderCircle size={17} className="spin"/>}{mode === 'login' ? '登入我的手帳' : '建立帳號'}</button>
             </form>
-            <div className="row">{google && <a className="button" href="/api/auth/google">{mode === 'register' ? '使用 Google 註冊' : '使用 Google 登入／註冊'}</a>}<a className="text-button" href="/recover">忘記密碼</a><a className="button" href="/">先以訪客模式使用 →</a></div>{notice && <p role="status">{notice}</p>}<p className={styles.note}>登入工作階段使用 HttpOnly Cookie；密碼不會以明文儲存。</p>
+            <div className={styles.actions}>
+                {google && <a className="button" href="/api/auth/google">{mode === 'register' ? '使用 Google 註冊' : '使用 Google 登入／註冊'}</a>}
+                <div>
+                    <a className="text-button" href="/recover">忘記密碼</a>
+                    <a className="text-button" href="/">先以訪客模式使用 <ArrowRight size={15} aria-hidden="true"/></a>
+                </div>
+            </div>
+            {notice && <p className={styles.notice} role="status">{notice}</p>}
         </section>
     </main>;
 }

@@ -1,0 +1,522 @@
+.shell {
+    --site-nav-height: 60px;
+    min-height: 100dvh;
+}
+
+.content-frame,
+.world-main > :is(.guest-banner, .error-banner, .app-footer) {
+    width: min(calc(100% - 2 * var(--page-gutter)), var(--content-max));
+    margin-inline: auto;
+}
+
+.main {
+    min-width: 0;
+    padding-bottom: 40px;
+}
+
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    border-bottom: 1px solid var(--control);
+    background: color-mix(in srgb, var(--background) 96%, transparent);
+    backdrop-filter: blur(20px);
+}
+
+.site-nav {
+    min-height: var(--site-nav-height);
+    display: grid;
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
+    grid-template-areas: "brand links actions";
+    gap: 20px;
+    align-items: center;
+}
+
+.site-brand {
+    grid-area: brand;
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    font: 600 19px/1.2 var(--font-display);
+    white-space: nowrap;
+}
+
+.site-links {
+    grid-area: links;
+    align-self: stretch;
+    display: flex;
+    gap: clamp(12px, 2.1vw, 32px);
+}
+
+.site-links button {
+    padding: 0 4px;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    background: transparent;
+    color: var(--muted-foreground);
+    white-space: nowrap;
+    font-size: 13px;
+    letter-spacing: -.12px;
+}
+
+.site-links button[aria-current='page'] {
+    color: var(--foreground);
+    border-bottom-color: currentColor;
+    font-weight: 600;
+}
+
+.site-links button:hover {
+    color: var(--foreground);
+}
+
+.site-actions {
+    grid-area: actions;
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.site-actions .button {
+    font-size: 12px;
+    min-height: 34px;
+    padding: 6px 13px;
+}
+
+.site-actions .icon-button {
+    min-width: 34px;
+    min-height: 34px;
+}
+
+.account-profile {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 3px 7px 3px 3px;
+    border-radius: var(--radius-pill);
+    font-size: 13px;
+}
+
+.account-profile:hover {
+    background: var(--muted);
+}
+
+.account-profile .avatar {
+    width: 28px;
+    height: 28px;
+}
+
+.account-profile > span:last-child {
+    max-width: 96px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.guest-banner {
+    justify-content: space-between;
+}
+
+.guest-banner strong {
+    color: var(--foreground);
+    font-weight: 600;
+}
+
+.guest-banner .text-button {
+    padding: 0;
+    font-size: inherit;
+}
+
+.page-heading {
+    padding-block: clamp(40px, 6vw, 76px) 28px;
+}
+
+.page-heading h1,
+.detail-title h1,
+.settings-page h1 {
+    font-size: clamp(34px, 5vw, 56px);
+}
+
+.world-hero {
+    padding-top: clamp(40px, 5.4vw, 80px);
+    padding-bottom: clamp(36px, 5vw, 64px);
+    text-align: center;
+}
+
+.hero-copy {
+    max-width: 980px;
+    display: grid;
+    justify-items: center;
+    gap: 12px;
+    margin-inline: auto;
+}
+
+.hero-copy .hero-kicker {
+    color: var(--foreground);
+    font: 600 21px/1.2 var(--font-display);
+    letter-spacing: .23px;
+}
+
+.hero-copy h1 {
+    font-size: clamp(38px, 5.6vw, 80px);
+    line-height: 1.05;
+    letter-spacing: -1.2px;
+    text-wrap: balance;
+}
+
+.hero-copy p:last-child {
+    font-size: 17px;
+    line-height: 1.47;
+    letter-spacing: -.22px;
+}
+
+.world-map-switch {
+    width: fit-content;
+    margin: 24px auto 0;
+}
+
+.world-map-switch button {
+    min-width: 52px;
+    font-size: 12px;
+    letter-spacing: 0;
+}
+
+.world-visual {
+    max-width: 1160px;
+    margin: 8px auto 0;
+}
+
+.world-visual-2d {
+    margin-top: 20px;
+    margin-bottom: 12px;
+    border-radius: var(--radius-card);
+    overflow: hidden;
+}
+
+.world-visual .world-map,
+.world-globe-gallery canvas {
+    height: clamp(300px, 53vw, 526px);
+}
+
+.world-globe.world-globe-gallery {
+    background: transparent;
+}
+
+.world-globe-gallery::before {
+    display: none;
+}
+
+.world-globe-gallery canvas:focus-visible {
+    outline-color: var(--ring);
+    border-radius: var(--radius-card);
+}
+
+.world-globe-gallery .globe-controls {
+    right: 0;
+    bottom: 8px;
+    padding: 3px;
+    gap: 0;
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--control) 76%, transparent);
+    backdrop-filter: blur(12px);
+}
+
+.world-globe-gallery .globe-controls button {
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    color: var(--foreground);
+    background: transparent;
+}
+
+.world-globe-gallery .globe-controls button:hover {
+    background: var(--card);
+}
+
+.world-globe-gallery .flight-map-credit {
+    left: 0;
+    color: var(--muted-foreground);
+    background: var(--paper);
+    border-radius: var(--radius-pill);
+}
+
+.world-globe-gallery .globe-warning {
+    color: var(--muted-foreground);
+}
+
+.world-hero .place-chips {
+    justify-content: center;
+}
+
+.world-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    max-width: 900px;
+    margin: 28px auto 0;
+    color: var(--foreground);
+}
+
+.world-stats > div {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-inline-start: 1px solid var(--control);
+}
+
+.world-stats > div:first-child {
+    border-inline-start: 0;
+}
+
+.world-stats dt {
+    color: var(--muted-foreground);
+    font-size: 14px;
+}
+
+.world-stats dd {
+    grid-row: 1;
+    margin: 0;
+    font: 600 clamp(28px, 3.5vw, 44px)/1.1 var(--font-display);
+    letter-spacing: -.04em;
+    font-variant-numeric: tabular-nums;
+}
+
+.world-highlights {
+    padding-block: var(--section-space);
+    background: var(--muted);
+}
+
+.highlights-content > .section-heading {
+    margin: 0 0 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.highlights-content > .section-heading h2,
+.country-heading h2 {
+    font-size: clamp(29px, 4vw, 40px);
+    line-height: 1.14;
+}
+
+.next-travel {
+    display: flex;
+    align-items: center;
+    gap: 12px 18px;
+    flex-wrap: wrap;
+    max-width: 760px;
+    margin: 0 auto 52px;
+    padding: 16px 22px;
+    border-radius: var(--radius-card);
+    background: var(--card);
+}
+
+.next-travel span {
+    display: block;
+    font-size: 12px;
+    color: var(--muted-foreground);
+}
+
+.next-travel strong {
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.next-travel p {
+    flex: 1 1 170px;
+    font-size: 14px;
+}
+
+.next-travel .button {
+    margin-inline-start: auto;
+}
+
+.trip-grid.recent-trip-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.world-highlights .trip-card {
+    border-color: transparent;
+}
+
+.world-highlights .trip-cover {
+    aspect-ratio: 2 / 1;
+}
+
+.first-story {
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+    align-items: stretch;
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    background: var(--card);
+}
+
+.first-story > img {
+    width: 100%;
+    height: 100%;
+    min-height: 290px;
+    object-fit: cover;
+}
+
+.first-story > div {
+    display: grid;
+    align-content: center;
+    justify-items: start;
+    gap: 16px;
+    padding: clamp(26px, 4.5vw, 64px);
+}
+
+.first-story h3 {
+    font-size: clamp(25px, 3.3vw, 40px);
+    line-height: 1.17;
+}
+
+.first-story p {
+    font-size: 17px;
+    line-height: 1.47;
+    max-width: 29em;
+}
+
+.first-story .row {
+    gap: 12px 20px;
+}
+
+.country-footprints {
+    padding-block: var(--section-space) 0;
+}
+
+.country-footprints > p {
+    margin-bottom: 10px;
+}
+
+@media (max-width: 800px) {
+    .site-nav {
+        grid-template-columns: 1fr auto;
+        grid-template-areas: "brand actions" "links links";
+        gap: 0 8px;
+    }
+
+    .site-links {
+        justify-content: space-between;
+        gap: 0;
+    }
+
+    .site-links button {
+        flex: 1;
+        min-height: 44px;
+        padding-inline: 2px;
+    }
+
+    .site-actions {
+        min-height: 52px;
+        gap: 5px;
+    }
+
+    .account-profile > span:last-child {
+        display: none;
+    }
+
+    .first-story {
+        grid-template-columns: 1fr;
+    }
+
+    .first-story > img {
+        height: auto;
+        min-height: 0;
+        aspect-ratio: 16 / 9;
+    }
+
+    .first-story > div {
+        padding: 28px;
+    }
+}
+
+@media (max-width: 520px) {
+    .site-brand {
+        gap: 6px;
+        font-size: 17px;
+    }
+
+    .site-actions .button {
+        min-height: 44px;
+        padding-inline: 10px;
+        gap: 4px;
+    }
+
+    .site-actions .icon-button,
+    .account-profile {
+        min-height: 44px;
+    }
+
+    .account-profile {
+        padding-inline: 4px;
+    }
+
+    .guest-banner {
+        gap: 3px 10px;
+    }
+
+    .hero-copy h1 {
+        letter-spacing: -.8px;
+    }
+
+    .hero-copy p:last-child {
+        font-size: 15px;
+    }
+
+    .hero-copy .hero-kicker {
+        font-size: 18px;
+    }
+
+    .world-map-switch {
+        margin-top: 20px;
+    }
+
+    .world-globe-gallery {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+    }
+
+    .world-globe-gallery :is(canvas, .globe-warning) {
+        grid-column: 1 / -1;
+    }
+
+    .world-globe-gallery .globe-controls {
+        position: static;
+        justify-self: end;
+    }
+
+    .world-globe-gallery .globe-controls button {
+        width: 36px;
+        height: 36px;
+    }
+
+    .world-globe-gallery .flight-map-credit {
+        position: static;
+        justify-self: start;
+    }
+
+    .world-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        row-gap: 16px;
+    }
+
+    .world-stats > div:nth-child(odd) {
+        border-inline-start: 0;
+    }
+
+    .trip-grid.recent-trip-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 360px) {
+    .site-actions .primary svg {
+        display: none;
+    }
+}

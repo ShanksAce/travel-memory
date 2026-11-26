@@ -1,0 +1,119 @@
+.filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted-foreground);
+    font-size: 14px;
+}
+
+.filter input {
+    accent-color: var(--link);
+}
+
+.schedule {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.schedule li {
+    display: flex;
+    align-items: baseline;
+    gap: 6px 16px;
+}
+
+.scheduleTime {
+    min-width: 5em;
+    color: var(--muted-foreground);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+}
+
+.stop {
+    overflow-wrap: anywhere;
+}
+
+.caption small {
+    display: block;
+    margin-top: 4px;
+    color: var(--muted-foreground);
+}
+
+.diary h5 {
+    margin: 8px 0 4px;
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 600;
+}
+
+:global(html[data-theme='fieldnotes']) .toolbar {
+    margin-bottom: 28px;
+}
+
+:global(html[data-theme='fieldnotes']) .day {
+    margin: 0 0 20px;
+    padding: clamp(18px, 3.5vw, 38px);
+    border-color: var(--control);
+}
+
+:global(html[data-theme='fieldnotes']) .day::before,
+:global(html[data-theme='fieldnotes']) .day::after {
+    content: none;
+}
+
+:global(html[data-theme='fieldnotes']) .day .dayHeader {
+    margin: 0;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--control);
+    flex-wrap: wrap;
+    gap: 10px 16px;
+}
+
+:global(html[data-theme='fieldnotes']) .dayHeader h3 {
+    font-size: clamp(21px, 4vw, 30px);
+    letter-spacing: -.015em;
+    font-variant-numeric: tabular-nums;
+}
+
+:global(html[data-theme='fieldnotes']) .dayHeader + p {
+    margin-top: 16px;
+}
+
+:global(html[data-theme='fieldnotes']) .schedule li {
+    padding: 8px 0;
+}
+
+:global(html[data-theme='fieldnotes']) .schedule li + li {
+    border-top: 1px solid var(--control);
+}
+
+:global(html[data-theme='fieldnotes']) .photos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    align-items: start;
+}
+
+:global(html[data-theme='fieldnotes']) .photo img {
+    height: auto;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+}
+
+:global(html[data-theme='fieldnotes']) .photo:only-child {
+    width: min(100%, 600px);
+}
+
+:global(html[data-theme='fieldnotes']) .day .caption {
+    padding: 12px 16px 14px;
+    font-size: 14px;
+}
+
+:global(html[data-theme='fieldnotes']) .diary {
+    padding-inline-start: 16px;
+    border-color: var(--control);
+}
+
+:global(html[data-theme='fieldnotes']) .diary p {
+    max-width: 44em;
+    line-height: 1.65;
+}

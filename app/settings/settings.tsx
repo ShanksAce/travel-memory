@@ -5,11 +5,16 @@ import Avatar from '../avatar';
 import {exportAccountBackup, restoreAccountBackup} from '../../lib/backup-client';
 import {maxBackupBytes} from '../../lib/backup';
 import {exportGuest} from '../../lib/guest';
-export default function Settings({ name, email, guest = false }: { name: string; email: string; guest?: boolean }) {
+import { themes } from '../../lib/appearance';
+export default function Settings({ name, email, guest = false, initialTheme, initialMotion }: {
+    name: string;
+    email: string;
+    guest?: boolean;
+    initialTheme: typeof themes[number]['id'];
+    initialMotion: boolean;
+}) {
     const [busy, setBusy] = useState(false), [message, setMessage] = useState(''), [error, setError] = useState(''), [version, setVersion] = useState(0), [hasAvatar, setHasAvatar] = useState(true);
-    const [section, setSection] = useState('appearance'), [theme, setTheme] = useState('journal'), [motion, setMotion] = useState(true), [displayName, setDisplayName] = useState(name);
-    const themes = [{id:'journal',name:'暖紙手帳',colors:["#f6f3ed","#883f2b","#a85c41"]},{id:'forest',name:'山林青綠',colors:["#f0f3ec","#325d48","#8b6338"]},{id:'ocean',name:'海灣晴藍',colors:["#eef3f6","#245a7a","#9b593f"]},{id:'night',name:'暮夜深色',colors:["#171b26","#c1b8ef","#e5aa82"]}];
-    useEffect(() => { setTheme(document.documentElement.dataset.theme || 'journal'); setMotion(document.documentElement.dataset.motion !== 'reduce'); }, []);
+    const [section, setSection] = useState('appearance'), [theme, setTheme] = useState(initialTheme), [motion, setMotion] = useState(initialMotion), [displayName, setDisplayName] = useState(name);
     function preference(key: string, value: string) { document.documentElement.dataset[key] = value; document.cookie = 'travel_' + key + '=' + value + '; Path=/; Max-Age=31536000; SameSite=Lax'; }
     async function exportRecords() {
         setBusy(true); setError('');
@@ -53,7 +58,7 @@ export default function Settings({ name, email, guest = false }: { name: string;
         if (ok && action === 'name') setDisplayName(String(fields.name).trim());
         if (ok && action === 'password') window.location.assign('/signin');
     }
-    return <main className="settings-page"><a className="text-button" href="/">← 返回旅行</a><h1>設定</h1><p>讓行旅錄，成為你的旅行空間。</p><nav className="settings-nav" aria-label="設定分類">{[['appearance','外觀與動效'],['profile','個人資料'],['security','帳號安全'],['data','資料管理']].filter(([id])=>!guest || id==='appearance'||id==='data').map(([id,label]) => <button key={id} disabled={busy} className={section===id?'button primary':'button'} aria-pressed={section===id} onClick={()=>{setSection(id);setError('');setMessage('');}}>{label}</button>)}</nav>
+    return <main className="settings-page"><a className="text-button" href="/">← 返回行旅錄</a><h1>設定</h1><nav className="settings-nav" aria-label="設定分類">{[['appearance','外觀與動效'],['profile','個人資料'],['security','帳號安全'],['data','資料管理']].filter(([id])=>!guest || id==='appearance'||id==='data').map(([id,label]) => <button key={id} disabled={busy} className={section===id?'button primary':'button'} aria-pressed={section===id} onClick={()=>{setSection(id);setError('');setMessage('');}}>{label}</button>)}</nav>
         {error && <div className="error-banner" role="alert">{error}</div>}{message && <p role="status">{message}</p>}
         <section hidden={section!=='appearance'} className="panel"><h2>外觀主題</h2><p className="helper">點選立即套用，偏好會保存在這個瀏覽器。</p><div className="theme-grid">{themes.map(t=><button key={t.id} className={'theme-choice'+(theme===t.id?' selected':'')} aria-pressed={theme===t.id} onClick={()=>{setTheme(t.id);preference('theme',t.id);}}><span className="theme-swatches">{t.colors.map(c=><span key={c} style={{background:c}}/>)}</span><strong>{t.name}</strong><small>{theme===t.id?'✓ 使用中':'套用主題'}</small></button>)}</div><label className="settings-toggle"><span>介面動畫<small>按鈕回彈、視窗與選項切換動畫</small></span><input type="checkbox" checked={motion} onChange={e=>{setMotion(e.target.checked);preference('motion',e.target.checked?'full':'reduce');}}/></label></section>
         <section hidden={section!=='profile'} className="panel"><h2>頭貼</h2><Avatar name={displayName} version={version} removed={!hasAvatar} large/>

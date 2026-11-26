@@ -23,7 +23,7 @@ export default function Recover() {
         } catch(e) {setError((e as Error).message);}
         finally {setBusy(false);}
     }
-    return <main className="settings-page"><a className="text-button" href="/signin">← 返回登入</a><h1>重設密碼</h1>
+    return <main className="settings-page recovery-page"><a className="text-button" href="/signin">← 返回登入</a><h1>重設密碼</h1>
         <form className="panel" onSubmit={submit}>
             {token ? <><PasswordField className="field" label="新密碼" name="password" required minLength={10} maxLength={128} autoComplete="new-password"/><PasswordField className="field" label="確認新密碼" name="confirm" required minLength={10} maxLength={128} autoComplete="new-password"/></> :
                 <label className="field">電子郵件<input name="email" type="email" maxLength={254} required autoComplete="email"/></label>}

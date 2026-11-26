@@ -20,13 +20,12 @@ export default function CountryFootprints({data, today, openTrip}: {
     const records=groups.get(active)!;
     const visits=new Set(records.map(place=>place.trip_id));
     const cities=[...new Set(records.map(place=>place.city))];
-    return <section className="panel country-footprints">
-        <div className="country-heading"><h2>國家足跡</h2><label className="field">選擇國家或地區
+    return <section className="content-frame country-footprints" aria-labelledby="country-title">
+        <div className="country-heading"><h2 id="country-title">國家足跡</h2><label className="field">選擇國家或地區
             <select value={active} onChange={event=>setSelected(event.target.value)}>
                 {countries.map(country=><option key={country}>{country}</option>)}
             </select></label></div>
-        <p>{visits.size} 趟旅行 · {cities.length} 座城市</p>
-        <p>{cities.join('、')}</p>
+        <p>{visits.size} 趟旅行 · {cities.length} 座城市 · {cities.join('、')}</p>
         {data.trips.filter(trip=>visits.has(trip.id)).map(trip=><div className="country-trip" key={trip.id}>
             <button className="text-button" onClick={()=>openTrip(trip.id)}>{trip.title}</button>
             <time dateTime={trip.start_date}>{trip.start_date}</time>
